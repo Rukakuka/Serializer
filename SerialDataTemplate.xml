@@ -1,0 +1,13 @@
+<SerialDataTemplate>
+  <deviceid></deviceid>
+  <errorcode></errorcode>
+  <ax></ax>
+  <ay></ay>
+  <az></az>
+  <gx></gx>
+  <gy></gy>
+  <gz></gz>
+  <mx></mx>
+  <my></my>
+  <mz></mz>
+</SerialDataTemplate>

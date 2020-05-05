@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<ArrayOfDeviceConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DeviceConfig>
+    <deviceid>Arduino</deviceid>
+    <vendorid>2341</vendorid>
+    <productid>0043</productid>
+    <baudrate>115200</baudrate>
+    <parity>None</parity>
+    <stopbits>One</stopbits>
+    <databits>8</databits>
+    <handshake>None</handshake>
+  </DeviceConfig>
+  <DeviceConfig>
+    <deviceid>DummyDevice</deviceid>
+    <vendorid>999</vendorid>
+    <productid>999</productid>
+    <baudrate>9600</baudrate>
+    <parity>None</parity>
+    <stopbits>One</stopbits>
+    <databits>8</databits>
+    <handshake>None</handshake>
+  </DeviceConfig>
+  <DeviceConfig>
+    <deviceid>dfgdf</deviceid>
+    <vendorid>434</vendorid>
+    <productid>543</productid>
+    <baudrate>2400</baudrate>
+    <parity>Even</parity>
+    <stopbits>Two</stopbits>
+    <databits>6</databits>
+    <handshake>XOnXOff</handshake>
+  </DeviceConfig>
+</ArrayOfDeviceConfig>
