@@ -11,6 +11,7 @@ Xmlparser::Xmlparser()
 	CreateXmlString(Tags, Values);
 }
 
+
 std::string Xmlparser::CreateXmlString(std::vector<std::string> Tags, std::vector<int> Values)
 {
 	Tiny::XMLDocument doc;
