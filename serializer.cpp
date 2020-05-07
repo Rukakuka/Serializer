@@ -3,9 +3,10 @@
 
 #include <iostream>
 #include "serializer.h"
-
+#include "xmlparser.h"
 int main()
 {
+    Xmlparser x;
     std::cout << "Hello World!\n";
 }
 
