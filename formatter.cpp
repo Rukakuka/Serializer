@@ -26,9 +26,6 @@ void Formatter::CreateXmlFromList(std::string RootName, std::vector<std::string>
 		element->SetText(std::to_string(Values[i]).c_str());
 		root->InsertEndChild(element);
 	}
-	// TO REMOVE
-	Doc.SaveFile("d.xml");
-	// /TO REMOVE
 }
 
 std::string Formatter::GetStringFromCurrentDoc()
@@ -38,10 +35,15 @@ std::string Formatter::GetStringFromCurrentDoc()
 	{
 		throw "No root";
 	}
-	int a;
 	Tiny::XMLPrinter printer;
 	root->Accept(&printer);
-	std::string res = printer.CStr();
-	return res;
+	return printer.CStr();
 }
 
+std::pair<std::string, int> Formatter::CreatePairFromValue(int value)
+{
+	const char* var_name = GET_VARIABLE_NAME(value);
+	std::pair<std::string, int> pair = { var_name, value };
+	std::cout << pair.first << pair.second << std::endl;
+	return pair;
+}

@@ -16,9 +16,11 @@ int main()
 	Formatter f;
 	f.CreateXmlFromList("shit", Tags, Values);
 
+
 	std::string s = f.GetStringFromCurrentDoc();
 	std::cout << s.c_str() << std::endl;
-
+	int g = 3;
+	f.CreatePairFromValue(g);
     std::cout << "Hello World!\n";
 }
 
