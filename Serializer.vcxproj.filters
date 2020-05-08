@@ -18,10 +18,10 @@
     <ClInclude Include="serializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="xmlparser.h">
+    <ClInclude Include="..\..\ArduinoProjects\libraries\tinyxml2\tinyxml2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\ArduinoProjects\libraries\tinyxml2\tinyxml2.h">
+    <ClInclude Include="formatter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -29,10 +29,10 @@
     <ClCompile Include="serializer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="xmlparser.cpp">
+    <ClCompile Include="..\..\ArduinoProjects\libraries\tinyxml2\tinyxml2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\ArduinoProjects\libraries\tinyxml2\tinyxml2.cpp">
+    <ClCompile Include="formatter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

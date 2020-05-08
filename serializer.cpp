@@ -3,10 +3,22 @@
 
 #include <iostream>
 #include "serializer.h"
-#include "xmlparser.h"
+#include "formatter.h"
 int main()
 {
-    Xmlparser x;
+	std::vector<std::string> Tags(2);
+	Tags[0] = "dummy1";
+	Tags[1] = "dummy2";
+	std::vector<int> Values(2);
+	Values[0] = 4;
+	Values[1] = 5;
+
+	Formatter f;
+	f.CreateXmlFromList("shit", Tags, Values);
+
+	std::string s = f.GetStringFromCurrentDoc();
+	std::cout << s.c_str() << std::endl;
+
     std::cout << "Hello World!\n";
 }
 

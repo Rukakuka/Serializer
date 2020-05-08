@@ -149,12 +149,12 @@
   <ItemGroup>
     <ClInclude Include="..\..\ArduinoProjects\libraries\tinyxml2\tinyxml2.h" />
     <ClInclude Include="serializer.h" />
-    <ClInclude Include="xmlparser.h" />
+    <ClInclude Include="formatter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ArduinoProjects\libraries\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="serializer.cpp" />
-    <ClCompile Include="xmlparser.cpp" />
+    <ClCompile Include="formatter.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
