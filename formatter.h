@@ -1,9 +1,7 @@
-#include "stdlib.h"
 #include "tinyxml2.h"
-
+#include "stdlib.h"
 #include <string>
 #include <vector>
-#include <iostream>
 #include <utility>
 
 #define Tiny tinyxml2 

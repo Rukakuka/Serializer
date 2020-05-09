@@ -4,6 +4,7 @@
 #include <iostream>
 #include "serializer.h"
 #include "formatter.h"
+
 int main()
 {
 	std::vector<std::string> Tags(2);

@@ -44,6 +44,5 @@ std::pair<std::string, int> Formatter::CreatePairFromValue(int value)
 {
 	const char* var_name = GET_VARIABLE_NAME(value);
 	std::pair<std::string, int> pair = { var_name, value };
-	std::cout << pair.first << pair.second << std::endl;
 	return pair;
 }
