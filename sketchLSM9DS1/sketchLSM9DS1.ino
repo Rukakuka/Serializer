@@ -1,27 +1,19 @@
-
 #include "LSM9DS1.h"
-#include "I2C.h"
-#include "stdlib.h"
-#include "tinyxml2.h"
-#include "formatter.h"
+#include "xmlmessage.h"
 
-#define GET_VARIABLE_NAME(var) (#var)
+#include <I2C.h>
+#include <StandardCplusplus.h>
+#include <string>
+#include <sstream>
 
-#define deviceid "LSM9DS1"
-#define errorcode 0 // TODO : manage error codes
-#define ax Sensor.Accelerometer.X
-#define ay Sensor.Accelerometer.Y
-#define az Sensor.Accelerometer.Z
-#define gx Sensor.Gyroscope.X
-#define gy Sensor.Gyroscope.Y
-#define gz Sensor.Gyroscope.Z
-#define mx Sensor.Magnetometer.X
-#define my Sensor.Magnetometer.Y
-#define mz Sensor.Magnetometer.Z
+#define GET_VAR_NAME(Variable) (#Variable)
+
+const string deviceid = "LSM9DS1";
+byte errorcode = 0; // TODO : manage error codes
 
 I2C Bus;
 LSM9DS1 Sensor(Bus);
-//Formatter formatter;
+XmlMessage Message;
 
 void setup() {
 
@@ -29,6 +21,7 @@ void setup() {
     Bus.begin();
     Bus.setSpeed(true);
     Bus.timeOut(1000);
+
     Sensor.Set_CTRL_REG1_G(LSM9DS1::GyroODR::ODR_238, LSM9DS1::GyroFullscale::FS_2000);
     Sensor.Set_CTRL_REG2_G(LSM9DS1::GyroInterruptGeneration::None, LSM9DS1::GyroOutDataConfiguration::OutAfterLPF1);
     Sensor.Set_CTRL_REG3_G(LSM9DS1::GyroLowPowerMode::Disabled);
@@ -43,6 +36,28 @@ void setup() {
     Sensor.Set_REG3_M(LSM9DS1::MagnetLowPowerMode::Disabled, LSM9DS1::MagnetOperatingMode::ContinuousConversion);
     Sensor.Set_REG4_M(LSM9DS1::MagnetAxisOperativeMode::UltraHighPerfomance);
     Sensor.Set_REG5_M(LSM9DS1::MagnetDataUpdate::Continuous);
+
+    Message.SetRoot("SerialDeviceData");
+
+    int var=0;    
+    char* var_name= GET_VAR_NAME(var);
+
+    int a = 25;
+    std::string s = Message.toString(a);
+    
+    Message.AddTag(Message.toString(GET_VAR_NAME(deviceid)), deviceid);
+    Message.AddTag(Message.toString(GET_VAR_NAME(errorcode))), Message.toString(errorcode));
+    /*
+    Message.AddTag(toString GET_VAR_NAME(ax)));
+    Message.AddTag(toString GET_VAR_NAME(ay)));
+    Message.AddTag(toString GET_VAR_NAME(az)));
+    Message.AddTag(toString GET_VAR_NAME(gx)));
+    Message.AddTag(toString GET_VAR_NAME(gy)));
+    Message.AddTag(toString GET_VAR_NAME(gz)));
+    Message.AddTag(toString GET_VAR_NAME(mx)));
+    Message.AddTag(toString GET_VAR_NAME(my)));
+    Message.AddTag(toString GET_VAR_NAME(mz)));
+    */
 }
 
 void loop() 
@@ -75,3 +90,4 @@ void loop()
     }
     delay(12);
 }
+

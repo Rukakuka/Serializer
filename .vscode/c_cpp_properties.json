@@ -5,6 +5,7 @@
             "includePath": [
                 "C:\\Users\\tehni\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\**",
                 "C:\\Users\\tehni\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.6.21\\**",
+                "E:\\MVSprojects\\Serializer",
                 "E:\\MVSprojects\\Serializer\\**"
             ],
             "forcedInclude": [
@@ -13,8 +14,10 @@
             "intelliSenseMode": "msvc-x64",
             "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.24.28314/bin/Hostx64/x64/cl.exe",
             "browse": {
-                "limitSymbolsToIncludedHeaders": false,
                 "path": [
+                    "C:\\Users\\tehni\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\**",
+                    "C:\\Users\\tehni\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.6.21\\**",
+                    "E:\\MVSprojects\\Serializer",
                     "E:\\MVSprojects\\Serializer\\**"
                 ]
             }
