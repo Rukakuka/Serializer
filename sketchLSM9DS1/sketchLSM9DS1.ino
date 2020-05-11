@@ -8,8 +8,21 @@
 
 #define GET_VAR_NAME(Variable) (#Variable)
 
+
+// <TAGS TO TRANSMIT TO PC>
+#define ax Sensor.Accelerometer.X
+#define ay Sensor.Accelerometer.Y
+#define az Sensor.Accelerometer.Z
+#define gx Sensor.Gyroscope.X
+#define gy Sensor.Gyroscope.Y
+#define gz Sensor.Gyroscope.Z
+#define mx Sensor.Magnetometer.X
+#define my Sensor.Magnetometer.Y
+#define mz Sensor.Magnetometer.Z
+
 const string deviceid = "LSM9DS1";
-byte errorcode = 0; // TODO : manage error codes
+const string errorcode = "noerror"; // TODO : manage error codes
+ // </TAGS>
 
 I2C Bus;
 LSM9DS1 Sensor(Bus);
@@ -39,31 +52,45 @@ void setup() {
 
     Message.SetRoot("SerialDeviceData");
 
-    int var=0;    
-    char* var_name= GET_VAR_NAME(var);
-
-    int a = 25;
-    std::string s = Message.toString(a);
-    
     Message.AddTag(Message.toString(GET_VAR_NAME(deviceid)), deviceid);
-    Message.AddTag(Message.toString(GET_VAR_NAME(errorcode))), Message.toString(errorcode));
-    /*
-    Message.AddTag(toString GET_VAR_NAME(ax)));
-    Message.AddTag(toString GET_VAR_NAME(ay)));
-    Message.AddTag(toString GET_VAR_NAME(az)));
-    Message.AddTag(toString GET_VAR_NAME(gx)));
-    Message.AddTag(toString GET_VAR_NAME(gy)));
-    Message.AddTag(toString GET_VAR_NAME(gz)));
-    Message.AddTag(toString GET_VAR_NAME(mx)));
-    Message.AddTag(toString GET_VAR_NAME(my)));
-    Message.AddTag(toString GET_VAR_NAME(mz)));
-    */
+    Message.AddTag(Message.toString(GET_VAR_NAME(errorcode)), Message.toString(errorcode));
+
+    Message.AddTag(Message.toString(GET_VAR_NAME(ax)), Message.toString(ax));
+    Message.AddTag(Message.toString(GET_VAR_NAME(ay)), Message.toString(ay));
+    Message.AddTag(Message.toString(GET_VAR_NAME(az)), Message.toString(az));
+
+    Message.AddTag(Message.toString(GET_VAR_NAME(gx)), Message.toString(gx));
+    Message.AddTag(Message.toString(GET_VAR_NAME(gy)), Message.toString(gy));
+    Message.AddTag(Message.toString(GET_VAR_NAME(gz)), Message.toString(gz));
+
+    Message.AddTag(Message.toString(GET_VAR_NAME(mx)), Message.toString(mx));
+    Message.AddTag(Message.toString(GET_VAR_NAME(my)), Message.toString(my));
+    Message.AddTag(Message.toString(GET_VAR_NAME(mz)), Message.toString(mz));  
 }
 
-void loop() 
+int i = 0 ;
+void loop()
 {
+    i++;
     if (Sensor.Update() == LSM9DS1::Error::None)
     {
+       
+        Message.SetValueByTag(GET_VAR_NAME(ax), Message.toString(ax));
+        Message.SetValueByTag(GET_VAR_NAME(ay), Message.toString(ay));
+        Message.SetValueByTag(GET_VAR_NAME(az), Message.toString(az));
+
+        
+        Message.SetValueByTag(GET_VAR_NAME(gx), Message.toString(gx));
+        Message.SetValueByTag(GET_VAR_NAME(gy), Message.toString(gy));
+        Message.SetValueByTag(GET_VAR_NAME(gz), Message.toString(gz));
+
+        Message.SetValueByTag(GET_VAR_NAME(mx), Message.toString(mx));
+        Message.SetValueByTag(GET_VAR_NAME(my), Message.toString(my));
+        Message.SetValueByTag(GET_VAR_NAME(mz), Message.toString(mz));
+
+        Serial.println(Message.GetString().c_str());
+        Serial.println("---------------------");
+
         //Serial.print("X=");
         //Serial.print(Sensor.Gyroscope.X);
         //Serial.print("      Y=");
@@ -73,13 +100,13 @@ void loop()
         //Serial.println();
         //Serial.print("X=");
 
-        //Serial.print(Sensor.Accelerometer.X);
-        //Serial.print("      Y=");
-        //Serial.print(Sensor.Accelerometer.Y);
-        //Serial.print("      Z=");
-        //Serial.print(Sensor.Accelerometer.Z);
-        //Serial.println();
-
+        Serial.print(Sensor.Accelerometer.X);
+        Serial.print("      Y=");
+        Serial.print(ay);
+        Serial.print("      Z=");
+        Serial.print(az);
+        Serial.println();
+        /*
         Serial.print("X=");
         Serial.print(Sensor.Magnetometer.X);
         Serial.print("      Y=");
@@ -87,7 +114,7 @@ void loop()
         Serial.print("      Z=");
         Serial.print(Sensor.Magnetometer.Z);
         Serial.println();
+        */
     }
-    delay(12);
+    delay(1000);
 }
-

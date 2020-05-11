@@ -2,5 +2,6 @@
     "board": "arduino:avr:uno",
     "sketch": "sketchLSM9DS1\\sketchLSM9DS1.ino",
     "programmer": "AVR ISP",
-    "output": "../build"
+    "output": "../build",
+    "port": "COM3"
 }

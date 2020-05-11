@@ -2,25 +2,25 @@
 
 XmlMessage::XmlMessage() 
 {
-
+    Message.reserve(250);
 }	
 
-string XmlMessage::EmbraceOpen(string value)
+string XmlMessage::EmbraceOpen(string tagname)
 {
-    if (value.empty())
+    if (tagname.empty())
     {
         return "<>";
     }
-    return "<" + value + ">";
+    return "<" + tagname + ">";
 }
 
-string XmlMessage::EmbraceClose(string value)
+string XmlMessage::EmbraceClose(string tagname)
 {
-    if (value.empty())
+    if (tagname.empty())
     {
         return "</>";
     }
-    return "</" + value + ">";
+    return "</" + tagname + ">";
 }
 
 void XmlMessage::SetRoot(string rootName)
@@ -39,7 +39,7 @@ void XmlMessage::AddTag(string tag)
     {
         return;
     }
-    Childrens.insert(std::pair<string,string>(Embrace(tag), ""));
+    Childrens.insert(std::pair<string,string>(tag, ""));
 }
 
 void XmlMessage::AddTag(string tag, string value)
@@ -52,7 +52,59 @@ void XmlMessage::AddTag(string tag, string value)
     {
         value = "0";
     }
-    Childrens.insert(std::pair<string,string>(Embrace(tag), value));
+    Childrens.insert(std::pair<string,string>(tag, value));
 }
 
+void XmlMessage::SetValueByTag(string tag, string value)
+{
+    if (tag.empty())
+    {
+        return;
+    }
+    if (value.empty())
+    {
+        value = "0";
+    }
+    if (Childrens.find(tag) == Childrens.end())
+    {
+        return;
+    }
+    Childrens[tag] = value;
+}
 
+string XmlMessage::GetValueByTag(string tag)
+{
+     if (tag.empty() || Childrens.find(tag) == Childrens.end())
+    {
+        return "";
+    }
+    return Childrens[tag];
+}
+
+void XmlMessage::Clear()
+{ 
+	Childrens.clear();
+};
+
+int XmlMessage::Count()
+{
+    return Childrens.size();        
+}
+
+string XmlMessage::GetString()
+{
+    Message.clear();
+    if (!Root.empty())
+    {
+        Root = "root";
+    }
+    Message += EmbraceOpen(Root) + "\n";
+    std::map<string, string>::iterator it = Childrens.begin();
+    while (it != Childrens.end())
+    {
+        Message += "\t" + EmbraceOpen(it->first) + it->second + EmbraceClose(it->first) + "\n";
+        it++;
+    }
+    Message += EmbraceClose(Root);
+    return Message;
+}

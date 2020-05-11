@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <sstream>
+#include <stdlib.h> 
 
 using namespace std;
 
@@ -15,17 +16,21 @@ private:
 	string Message;
 	string Root;
 	std::map<string, string> Childrens;
-	string EmbraceOpen(string value);
-	string EmbraceClose(string value);
-	void CreateString();
+	string EmbraceOpen(string tagname);
+	string EmbraceClose(string tagname);
 
 public:
 	XmlMessage();
+
 	void SetRoot(string rootName);
-	void SetTagByName(string tag, string value) {};
+	void SetValueByTag(string tag, string value);
 	void AddTag(string tag, string value);
 	void AddTag(string tag);
-	void Clear() {};
+	void Clear();
+
+	string GetValueByTag(string tag);
+	string GetString();
+	int Count();
 
 	template<typename T>
 	std::string toString(const T& value)
@@ -34,7 +39,4 @@ public:
    		oss << value;
    		return oss.str();
 	};
-
-	string GetValueByTag() {return "";};
-	string GetString() { return "";};
 };
