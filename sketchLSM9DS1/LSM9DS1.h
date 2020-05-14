@@ -176,7 +176,7 @@ public:
     uint8_t Set_REG5_M(MagnetDataUpdate update);
     /* COMMON */
     LSM9DS1(I2C Bus);
-    Error Update();
+    void Update();
 
     struct ThreeAxisData {
         int16_t X;
@@ -190,7 +190,7 @@ public:
 
 private:
     I2C Bus;
-    Error Err;
+    
     /*****       DEVICE       *****/
     const byte LSM9DS1_AG_ADDR = 0x6B;
     const byte LSM9DS1_M_ADDR = 0x1E;

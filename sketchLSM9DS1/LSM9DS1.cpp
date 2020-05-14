@@ -77,33 +77,28 @@ uint8_t LSM9DS1::Set_REG5_M(MagnetDataUpdate update)
 	return Bus.write(uint8_t(LSM9DS1_M_ADDR), uint8_t(LSM9DS1_CTRL_REG5_M), uint8_t(config));
 }
 
-LSM9DS1::Error LSM9DS1::Update()
+void LSM9DS1::Update()
 {
 	auto Receive = [this]()
 	{
 		return int16_t(Bus.receive() | Bus.receive() << 8);
 	};
 
-	if (Bus.read(uint8_t(LSM9DS1_AG_ADDR), uint8_t(LSM9DS1_XL_A), uint8_t(6)))
-	{
-		Err = Error::AccelerometerFail;
-	}
+	Bus.read(uint8_t(LSM9DS1_AG_ADDR), uint8_t(LSM9DS1_XL_A), uint8_t(6));
+
 	Accelerometer.X = Receive();
 	Accelerometer.Y = Receive();
 	Accelerometer.Z = Receive();
-	if (Bus.read(uint8_t(LSM9DS1_AG_ADDR), uint8_t(LSM9DS1_XL_G), uint8_t(6)))
-	{
-		Err = Error::GyroscopeFail;
-	}
+
+	Bus.read(uint8_t(LSM9DS1_AG_ADDR), uint8_t(LSM9DS1_XL_G), uint8_t(6));
+	
 	Gyroscope.X = Receive();
 	Gyroscope.Y = Receive();
 	Gyroscope.Z = Receive();
-	if (Bus.read(uint8_t(LSM9DS1_M_ADDR), uint8_t(LSM9DS1_XL_M), uint8_t(6)))
-	{
-		Err = Error::MagnetometerFail;
-	}
+	
+	Bus.read(uint8_t(LSM9DS1_M_ADDR), uint8_t(LSM9DS1_XL_M), uint8_t(6));
+
 	Magnetometer.X = Receive();
 	Magnetometer.Y = Receive();
 	Magnetometer.Z = Receive();
-	return Err;
 }
