@@ -3,6 +3,7 @@
 LSM9DS1::LSM9DS1(I2C Bus)
 {
 	this->Bus = Bus;
+	
 }
 
 uint8_t LSM9DS1::Set_CTRL_REG1_G(LSM9DS1::GyroODR gyroODR, LSM9DS1::GyroFullscale fullscale)
@@ -77,7 +78,7 @@ uint8_t LSM9DS1::Set_REG5_M(MagnetDataUpdate update)
 	return Bus.write(uint8_t(LSM9DS1_M_ADDR), uint8_t(LSM9DS1_CTRL_REG5_M), uint8_t(config));
 }
 
-void LSM9DS1::Update()
+void LSM9DS1::UpdateMeasurements()
 {
 	auto Receive = [this]()
 	{
@@ -101,4 +102,12 @@ void LSM9DS1::Update()
 	Magnetometer.X = Receive();
 	Magnetometer.Y = Receive();
 	Magnetometer.Z = Receive();
+}
+
+
+void LSM9DS1::UpdateBuffer()
+{
+	Bus.read(uint8_t(LSM9DS1_AG_ADDR), uint8_t(LSM9DS1_XL_A), uint8_t(6), &Buf[0]);
+	Bus.read(uint8_t(LSM9DS1_AG_ADDR), uint8_t(LSM9DS1_XL_G), uint8_t(6), &Buf[6]);
+	Bus.read(uint8_t(LSM9DS1_M_ADDR), uint8_t(LSM9DS1_XL_M), uint8_t(6), &Buf[12]);
 }

@@ -176,7 +176,9 @@ public:
     uint8_t Set_REG5_M(MagnetDataUpdate update);
     /* COMMON */
     LSM9DS1(I2C Bus);
-    void Update();
+    void UpdateMeasurements();
+    void UpdateBuffer();
+    uint8_t Buf[18];
 
     struct ThreeAxisData {
         int16_t X;
@@ -187,7 +189,6 @@ public:
     ThreeAxisData Accelerometer;
     ThreeAxisData Gyroscope;
     ThreeAxisData Magnetometer;
-
 private:
     I2C Bus;
     

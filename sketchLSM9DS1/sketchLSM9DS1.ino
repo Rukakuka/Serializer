@@ -56,6 +56,7 @@ void loop()
         oldtime = micros();
     }
 
+    /*
     Sensor.Update();
 
     Sensor.Accelerometer.X = 0x5A;
@@ -68,6 +69,7 @@ void loop()
     Sensor.Magnetometer.Y = 0x5A;
     Sensor.Magnetometer.Z = 0x5A;
 
+    
     Serial.write(0x3C);
     Serial.write(Sensor.Accelerometer.X >> 8);
     Serial.write(Sensor.Accelerometer.X & 0xFF);
@@ -97,22 +99,44 @@ void loop()
     Serial.write(Sensor.Magnetometer.Z & 0xFF);
     Serial.write(0x3E);
     Serial.write("\n");
+    */
+   
+    Sensor.UpdateBuffer();
+    Serial.write(0x3C);
+    for (int i = 0; i <18; i++)
+    {
+        Serial.write(Sensor.Buf[i]);
+        Serial.write("\t");
+    }
+    Serial.write(0x3E);
+    Serial.write("\n");
     
+    /*
+    Serial.write(0x3C);
+    Serial.print(Sensor.Accelerometer.X);
+    Serial.print("\t");
+    Serial.print(Sensor.Accelerometer.Y);
+    Serial.print("\t");
+    Serial.print(Sensor.Accelerometer.Z);
+    Serial.print("\t");
+    Serial.print(Sensor.Gyroscope.X);
+    Serial.print("\t");
+    Serial.print(Sensor.Gyroscope.Y);
+    Serial.print("\t");
+    Serial.print(Sensor.Gyroscope.Z);
+    Serial.print("\t");
+    Serial.print(Sensor.Magnetometer.X);
+    Serial.print("\t");
+    Serial.print(Sensor.Magnetometer.Y);
+    Serial.print("\t");
+    Serial.print(Sensor.Magnetometer.Z);
+    Serial.write(0x3E);
+    Serial.write("\n");
+    */
 }
 
 void pulse()
 {
     led = !led;
-    switch (led)
-    {
-    case true:
-
-        digitalWrite(LED_BUILTIN, HIGH);
-        break;
-
-    case false:
-
-        digitalWrite(LED_BUILTIN, LOW);
-        break;
-    }
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
 }
