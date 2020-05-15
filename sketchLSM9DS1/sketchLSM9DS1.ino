@@ -39,7 +39,6 @@ void setup()
 unsigned long oldtime = 0;
 unsigned long newtime = 0;
 unsigned long t = 0;
-bool led = false;
 
 void loop()
 {
@@ -58,7 +57,6 @@ void loop()
 
     /*
     Sensor.Update();
-
     Sensor.Accelerometer.X = 0x5A;
     Sensor.Accelerometer.Y = 0x5A;
     Sensor.Accelerometer.Z = 0x5A;
@@ -68,47 +66,17 @@ void loop()
     Sensor.Magnetometer.X = 0x5A;
     Sensor.Magnetometer.Y = 0x5A;
     Sensor.Magnetometer.Z = 0x5A;
-
-    
-    Serial.write(0x3C);
-    Serial.write(Sensor.Accelerometer.X >> 8);
-    Serial.write(Sensor.Accelerometer.X & 0xFF);
-    Serial.write("\t");
-    Serial.write(Sensor.Accelerometer.Y >> 8);
-    Serial.write(Sensor.Accelerometer.Y & 0xFF);
-    Serial.write("\t");
-    Serial.write(Sensor.Accelerometer.Z >> 8);
-    Serial.write(Sensor.Accelerometer.Y & 0xFF);
-    Serial.write("\t");
-    Serial.write(Sensor.Gyroscope.X >> 8);
-    Serial.write(Sensor.Gyroscope.X & 0xFF);
-    Serial.write("\t");
-    Serial.write(Sensor.Gyroscope.Y >> 8);
-    Serial.write(Sensor.Gyroscope.Y & 0xFF);
-    Serial.write("\t");
-    Serial.write(Sensor.Gyroscope.Z >> 8);
-    Serial.write(Sensor.Gyroscope.Z & 0xFF);
-    Serial.write("\t");
-    Serial.write(Sensor.Magnetometer.X >> 8);
-    Serial.write(Sensor.Magnetometer.X & 0xFF);
-    Serial.write("\t");
-    Serial.write(Sensor.Magnetometer.Y >> 8);
-    Serial.write(Sensor.Magnetometer.Y & 0xFF);
-    Serial.write("\t");
-    Serial.write(Sensor.Magnetometer.Z >> 8);
-    Serial.write(Sensor.Magnetometer.Z & 0xFF);
-    Serial.write(0x3E);
-    Serial.write("\n");
     */
    
     Sensor.UpdateBuffer();
-    Serial.write(0x3C);
+    Serial.write(0x3C); // ASCII "<" symbol
     for (int i = 0; i <18; i++)
     {
+        Sensor.Buf[i] = 123;
         Serial.write(Sensor.Buf[i]);
         Serial.write("\t");
     }
-    Serial.write(0x3E);
+    Serial.write(0x3E); // ASCII ">" symbol
     Serial.write("\n");
     
     /*
@@ -137,6 +105,5 @@ void loop()
 
 void pulse()
 {
-    led = !led;
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
 }
