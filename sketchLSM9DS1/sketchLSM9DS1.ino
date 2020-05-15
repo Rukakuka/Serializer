@@ -49,7 +49,7 @@ void loop()
     {
         pulse();
         newtime = micros();
-        Serial.print("******************************************************t");
+        Serial.print("Average measure time, milliseconds : ");
         Serial.println(((float)(newtime - oldtime)) / (1000 * t));
         t = 0;
         oldtime = micros();
