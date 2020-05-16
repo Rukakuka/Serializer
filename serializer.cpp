@@ -1,13 +1,23 @@
-#include "serializer.h"
-#include "ui_serializer.h"
 
-Serializer::Serializer(QWidget *parent) : QMainWindow(parent), ui(new Ui::Serializer)
+#include "serializer.h"
+
+Serializer::Serializer(MainWindow* mainwindow)
 {
-    ui->setupUi(this);
+    this->ui = mainwindow;
+    GetAvailablePorts();
 }
 
-Serializer::~Serializer()
+QList<QSerialPortInfo> Serializer::GetAvailablePorts()
 {
-    delete ui;
+    QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
+    /*
+    QSerialPortInfo port;
+
+    foreach(port, ports)
+    {
+        qDebug() << port.manufacturer() << port.serialNumber() << port.productIdentifier() << port.vendorIdentifier();
+    }
+    */
+    return ports;
 }
 

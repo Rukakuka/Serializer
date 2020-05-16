@@ -11,7 +11,6 @@ LSM9DS1 Sensor(Bus);
 
 void setup()
 {
-
     pinMode(LED_BUILTIN, OUTPUT);
 
     Serial.begin(1286400);
