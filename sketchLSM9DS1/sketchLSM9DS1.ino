@@ -44,14 +44,16 @@ void loop()
     t++;
     //delay(1000);
 
-    if (t % 100 == 0)
+    if (t % 1000 == 0)
     {
         pulse();
+        /*
         newtime = micros();
         Serial.print("Average measure time, milliseconds : ");
         Serial.println(((float)(newtime - oldtime)) / (1000 * t));
         t = 0;
         oldtime = micros();
+        */
     }
 
     /*
@@ -68,15 +70,13 @@ void loop()
     */
    
     Sensor.UpdateBuffer();
-    Serial.write(0x3C); // ASCII "<" symbol
     for (int i = 0; i <18; i++)
     {
-        Sensor.Buf[i] = 123;
+        //Sensor.Buf[i] = 123;
         Serial.write(Sensor.Buf[i]);
-        Serial.write("\t");
+        //Serial.write("\t");
     }
-    Serial.write(0x3E); // ASCII ">" symbol
-    Serial.write("\n");
+    Serial.write("\r\n"); // ASCII ">" symbol
     
     /*
     Serial.write(0x3C);

@@ -9,6 +9,7 @@
 #include <QThread>
 #include <QTimer>
 
+
 const QList<QString> idList = {"9573535333235110F091"};
 
 int main(int argc, char *argv[])
@@ -32,7 +33,7 @@ int main(int argc, char *argv[])
         {
             if (info.serialNumber() == id)
             {
-                Sensor *s = new Sensor(&info, 115200, "LSM9DS1");
+                Sensor *s = new Sensor(&info, 1286400, "LSM9DS1"); //
                 QThread *thread = new QThread();
                 sensors.append(s);                
                 s->moveToThread(thread);
@@ -44,7 +45,9 @@ int main(int argc, char *argv[])
                 qDebug() << "Added in thread : " << QThread::currentThreadId();
 
                 thread->start();
-                sensors[0]->open();
+                sensors[0]->initialize();
+                //Sensor::SensorError er =sensors[0]->open();
+                qDebug() << QVariant::fromValue(sensors[0]->open()).toString();
             }
         }
     }

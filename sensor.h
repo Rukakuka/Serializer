@@ -2,13 +2,16 @@
 #define SENSOR_H
 
 #include <QString>
+#include <QStringList>
 #include <QObject>
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QTimer>
 #include <QThread>
 #include <QDebug>
-
+#include <QByteArray>
+#include <QMetaType>
+Q_DECLARE_METATYPE(QSerialPort::SerialPortError)
 
 class Sensor : public QObject
 {
@@ -37,8 +40,8 @@ public:
     QString Id() { return this->id; }
     bool IsOnline() { return this->isOnline; }
     bool IsBusy() { return this->isBusy; }
-    Sensor::SensorError open();    
-
+    Sensor::SensorError open();
+    Sensor::SensorError initialize();
 
 private:
     long baudrate;
@@ -49,13 +52,22 @@ private:
     QString id;
     QSerialPort* port;
     QTimer *tmr;
+    QByteArray rxbuf;
+    qint16 databuf[9];
 
 public slots:
     void finishWork();
+    void readyRead();
+    void readError();
+    void readTimeout();
+
 private slots:
     void printFromAnotherThread();
+
+
 signals:
     void workFinished();
+
 };
 
 #endif // SENSOR_H
