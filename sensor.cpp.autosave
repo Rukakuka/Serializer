@@ -74,7 +74,7 @@ void Sensor::readyRead()
                 QByteArray pack = rxbuf.mid(end-18, 18);
                 if (pack.size() < 18)
                 {
-                    throw;
+                    throw("Wrong size of bytepacket");
                 }
                 //QDebug deb = qDebug();
                 for (int i = 0; i < 18; i += 2)
@@ -88,7 +88,7 @@ void Sensor::readyRead()
         }
         if (rxbuf.size() > 20)
         {
-            throw;
+            throw("RxBuffer too large after processing");
         }
         if (cnt >= 1000)
         {

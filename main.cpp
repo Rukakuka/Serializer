@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
                 QObject::connect(&mainwindow, SIGNAL(mysignal()), sensors[0], SLOT(finishWork()));
 
                 QObject::connect(sensors[0], SIGNAL(sendSensorData(qint16*)), &mainwindow, SLOT(SetDataLabels(qint16*)));
-                QObject::connect(sensors[0], SIGNAL(sendNanosElapsed(qint64)), &mainwindow, SLOT(SetElapsedLabel(qint64)));
+                QObject::connect(sensors[0], SIGNAL(sendNsecsElapsed(qint64)), &mainwindow, SLOT(SetElapsedLabel(qint64)));
 
                 qDebug() << "Added in thread : " << QThread::currentThreadId();
 

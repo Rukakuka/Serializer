@@ -57,6 +57,7 @@ private:
     QByteArray rxbuf;
     qint16 databuf[9];
     QElapsedTimer tmr;
+    const QString terminator = "\r\n";
 
 public slots:
     void finishWork();
@@ -71,7 +72,7 @@ private slots:
 signals:
     void workFinished();
     void sendSensorData(qint16 *databuf);
-    void sendNanosElapsed(qint64 nsecs);
+    void sendNsecsElapsed(qint64 nsecs);
 
 };
 
