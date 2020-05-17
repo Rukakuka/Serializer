@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
 
     Serializer serializer(&mainwindow);
 
+    // TODO : move to serializer
 
     auto portlist = serializer.GetAvailablePorts();
 
@@ -27,39 +28,40 @@ int main(int argc, char *argv[])
     QString id;
     QList<Sensor*> sensors;
 
+
+
     foreach(info,portlist)
     {
         foreach(id, idList)
         {
             if (info.serialNumber() == id)
             {
-                Sensor *s = new Sensor(&info, 1286400, "LSM9DS1"); //
+                Sensor *sensor = new Sensor(&info, 1286400, "LSM9DS1"); //
                 QThread *thread = new QThread();
 
-                sensors.append(s);
-                s->moveToThread(thread);
+                sensors.append(sensor);
+                sensor->moveToThread(thread);
 
                 // automatically delete thread and task object when work is done:
-                QObject::connect(s, SIGNAL(threadTerminating()), sensors[0], SLOT(deleteLater()));
+                QObject::connect(sensor, SIGNAL(threadTerminating()), sensor, SLOT(deleteLater()));
                 QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-                QObject::connect(thread, SIGNAL(started()), sensors[0], SLOT(initialize()));
 
-                QObject::connect(&mainwindow, SIGNAL(stopSerial()), sensors[0], SLOT(terminateThread()));
+                QObject::connect(&mainwindow, SIGNAL(stopSerial()), sensor, SLOT(close()));
+                QObject::connect(&mainwindow, SIGNAL(beginSerial()), sensor, SLOT(initialize()));
+                QObject::connect(&mainwindow, SIGNAL(terminateSerial()), sensor, SLOT(terminateThread()));
 
-                QObject::connect(sensors[0], SIGNAL(sendSensorData(qint16*)), &mainwindow, SLOT(SetDataLabels(qint16*)));
-                QObject::connect(sensors[0], SIGNAL(sendNsecsElapsed(qint64)), &mainwindow, SLOT(SetElapsedLabel(qint64)));
+                QObject::connect(sensor, SIGNAL(sendSensorData(qint16*)), &mainwindow, SLOT(SetDataLabels(qint16*)));
+                QObject::connect(sensor, SIGNAL(sendNsecsElapsed(qint64)), &mainwindow, SLOT(SetElapsedLabel(qint64)));
 
-                qDebug() << "Added in thread : " << QThread::currentThreadId();
+                qDebug() << "Sensor added in thread : " << QThread::currentThreadId();
 
                 thread->start();
-                //sensors[0]->initialize();
-                //Sensor::SensorError er =sensors[0]->open();
+
             }
         }
     }
-    qDebug() << "setup done";
-
-    //sensors[0]->finishWork();
+    qDebug() << "Setup done";
+    // /TODO
 
     //qDebug() << sensors[0]->Name() << sensors[0]->Id();
     //qDebug() << QVariant::fromValue(sensors[0]->open()).toString();

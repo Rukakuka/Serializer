@@ -13,9 +13,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_btnStart_clicked()
 {
+    emit beginSerial();
+    // emit to Serializer
+}
+
+void MainWindow::on_btnStop_clicked()
+{
     emit stopSerial();
     // emit to Serializer
 }
+
 
 void MainWindow::SetDataLabels(qint16 *databuf)
 {
@@ -33,4 +40,9 @@ void MainWindow::SetDataLabels(qint16 *databuf)
 void MainWindow::SetElapsedLabel(qint64 nsecs)
 {
     ui->lineEditAvgTime->setText(QString::number(((double)nsecs)/1e9));
+}
+
+void MainWindow::on_btnTerminate_clicked()
+{
+    emit terminateSerial();
 }

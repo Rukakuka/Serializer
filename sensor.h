@@ -67,7 +67,6 @@ public slots:
 
 private slots:
     void readyRead();
-    void readError();
     void readTimeout();
     void printFromAnotherThread();
 

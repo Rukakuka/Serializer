@@ -26,9 +26,14 @@ public slots:
 
 private slots:
     void on_btnStart_clicked();
+    void on_btnStop_clicked();
+
+    void on_btnTerminate_clicked();
 
 signals:
     void stopSerial();
+    void beginSerial();
+    void terminateSerial();
 
 };
 #endif // SERIALIZER_H

@@ -9,19 +9,17 @@ Sensor::Sensor(QSerialPortInfo *portinfo, long baudrate, QString name)
     this->name = name;
     this->id = portinfo->serialNumber();
     this->port = new QSerialPort(*portinfo);
+    this->isBusy = false;
 }
 
-Sensor::~Sensor()
-{
-   this->close();
-   emit threadTerminating();
+Sensor::~Sensor() {
 }
 
 
 void Sensor::initialize()
 {
-    qDebug() << "Initialize in thread" << QThread::currentThreadId();
-
+    if (!isBusy)
+    {
     port->setBaudRate(baudrate);
     port->setParity(QSerialPort::NoParity);
     port->setDataBits(QSerialPort::Data8);
@@ -32,16 +30,18 @@ void Sensor::initialize()
     timeoutTimer = new QTimer();
 
     QObject::connect(port,SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::UniqueConnection);
-    QObject::connect(port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(readyRead()), Qt::UniqueConnection);
     QObject::connect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()), Qt::UniqueConnection);
 
     this->open();
+    }
+    else
+    {
+        qDebug() << "Port " << this->name << "is busy. Stop port first.";
+    }
 }
 
 void Sensor::open()
 {
-    qDebug() << "Open in thread" << QThread::currentThreadId();
-
     if (port->open(QIODevice::ReadWrite))
     {
         port->clear(QSerialPort::AllDirections);
@@ -49,12 +49,22 @@ void Sensor::open()
         receiveTimer->start();
         timeoutTimer->start(timeout);
     }
+    else
+    {
+        qDebug() << "Err opening port " << this->name;
+    }
 }
 
 void Sensor::close()
 {
-    port->clear(QSerialPort::AllDirections);
+    if(port->isOpen())
+    {
+        port->clear(QSerialPort::AllDirections);
+    }
     port->close();
+
+    timeoutTimer->stop();
+
     isBusy = false;
 }
 
@@ -93,7 +103,7 @@ void Sensor::readyRead()
                 QByteArray pack = rxbuf.mid(end-18, 18);
                 if (pack.size() < 18)
                 {
-                    qDebug() << "Wrong packet size = " << pack.size() << " bytes";
+                    qDebug() << "Wrong packet size = " << pack.size() << " bytes in port " << this->name;
                     throw;
                 }
                 //QDebug deb = qDebug();
@@ -109,7 +119,7 @@ void Sensor::readyRead()
         }
         if (rxbuf.size() > 20)
         {
-            qDebug() << "RxBuffer too large after processing with size = " << rxbuf.size() << " bytes";
+            qDebug() << "RxBuffer too large after processing with size = " << rxbuf.size() << " bytes in port " << this->name;
             throw;
         }
         if (cnt >= 1000)
@@ -121,21 +131,16 @@ void Sensor::readyRead()
     }
 }
 
-void Sensor::readError()
-{
-    qDebug() << "Serial read error";
-}
-
 void Sensor::readTimeout()
 {
-    qDebug() << "Serial read timeout. Port closed.";
-    timeoutTimer->stop();
+    qDebug() << "Serial read timeout. Port " << this->name << "closed.";
     this->close();
 }
 
 void Sensor::terminateThread()
 {
-    isBusy = false;
+    qDebug() << "Thread terminating. Port " << this->name << "closed.";
+    this->close();
     emit threadTerminating();
 }
 
