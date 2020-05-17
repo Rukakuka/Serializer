@@ -28,7 +28,7 @@ private slots:
     void on_btnStart_clicked();
 
 signals:
-    void mysignal();
+    void stopSerial();
 
 };
 #endif // SERIALIZER_H

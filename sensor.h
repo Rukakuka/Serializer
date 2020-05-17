@@ -21,7 +21,6 @@ class Sensor : public QObject
     Q_OBJECT
 
 public:
-
     enum SensorError
     {
         CANNOT_OPEN_PORT,
@@ -31,6 +30,7 @@ public:
         NO_ERROR
     };
     Q_ENUM(SensorError)
+
     explicit Sensor(QObject *parent = nullptr);
 
     Sensor(QSerialPortInfo *portinfo,
@@ -41,39 +41,41 @@ public:
     QSerialPortInfo *Portinfo() { return this->portinfo; }
     QString Name() { return this->name; }
     QString Id() { return this->id; }
-    bool IsOnline() { return this->isOnline; }
     bool IsBusy() { return this->isBusy; }
-    Sensor::SensorError open();
-    Sensor::SensorError initialize();
+
+
 
 private:
+    const QString terminator = "\r\n";
+    const long timeout = 5000;
+
     long baudrate;
-    bool isOnline;
     bool isBusy;
     QSerialPortInfo *portinfo;
     QString name;
     QString id;
     QSerialPort* port;
-    QByteArray rxbuf;
-    qint16 databuf[9];
-    QElapsedTimer tmr;
-    const QString terminator = "\r\n";
+    QElapsedTimer* receiveTimer;
+    QTimer* timeoutTimer;
+
+    void open();
 
 public slots:
-    void finishWork();
+    void initialize();
+    void close();
+    void terminateThread();
+
+private slots:
     void readyRead();
     void readError();
     void readTimeout();
-
-private slots:
     void printFromAnotherThread();
 
 
 signals:
-    void workFinished();
+    void threadTerminating();
     void sendSensorData(qint16 *databuf);
     void sendNsecsElapsed(qint64 nsecs);
-
 };
 
 #endif // SENSOR_H

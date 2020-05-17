@@ -13,7 +13,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_btnStart_clicked()
 {
-    emit mysignal();
+    emit stopSerial();
     // emit to Serializer
 }
 

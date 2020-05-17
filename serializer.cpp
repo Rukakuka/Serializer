@@ -21,3 +21,4 @@ QList<QSerialPortInfo> Serializer::GetAvailablePorts()
     return ports;
 }
 
+

@@ -35,12 +35,16 @@ int main(int argc, char *argv[])
             {
                 Sensor *s = new Sensor(&info, 1286400, "LSM9DS1"); //
                 QThread *thread = new QThread();
-                sensors.append(s);                
+
+                sensors.append(s);
                 s->moveToThread(thread);
+
                 // automatically delete thread and task object when work is done:
-                QObject::connect(s, SIGNAL(workFinished()), s, SLOT(deleteLater()));
+                QObject::connect(s, SIGNAL(threadTerminating()), sensors[0], SLOT(deleteLater()));
                 QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-                QObject::connect(&mainwindow, SIGNAL(mysignal()), sensors[0], SLOT(finishWork()));
+                QObject::connect(thread, SIGNAL(started()), sensors[0], SLOT(initialize()));
+
+                QObject::connect(&mainwindow, SIGNAL(stopSerial()), sensors[0], SLOT(terminateThread()));
 
                 QObject::connect(sensors[0], SIGNAL(sendSensorData(qint16*)), &mainwindow, SLOT(SetDataLabels(qint16*)));
                 QObject::connect(sensors[0], SIGNAL(sendNsecsElapsed(qint64)), &mainwindow, SLOT(SetElapsedLabel(qint64)));
@@ -48,9 +52,8 @@ int main(int argc, char *argv[])
                 qDebug() << "Added in thread : " << QThread::currentThreadId();
 
                 thread->start();
-                sensors[0]->initialize();
+                //sensors[0]->initialize();
                 //Sensor::SensorError er =sensors[0]->open();
-                qDebug() << QVariant::fromValue(sensors[0]->open()).toString();
             }
         }
     }

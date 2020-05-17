@@ -13,67 +13,87 @@ Sensor::Sensor(QSerialPortInfo *portinfo, long baudrate, QString name)
 
 Sensor::~Sensor()
 {
-   port->close();
+   this->close();
+   emit threadTerminating();
 }
 
 
-Sensor::SensorError Sensor::initialize()
+void Sensor::initialize()
 {
+    qDebug() << "Initialize in thread" << QThread::currentThreadId();
+
     port->setBaudRate(baudrate);
     port->setParity(QSerialPort::NoParity);
     port->setDataBits(QSerialPort::Data8);
     port->setPortName(portinfo->portName());
     port->setFlowControl(QSerialPort::NoFlowControl);
-    //port->setReadBufferSize(262144);
-    tmr.start();
-    QObject::connect(port,SIGNAL(readyRead()), this, SLOT(readyRead()));
-    QObject::connect(port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(readyRead()));
 
-    return SensorError::NO_ERROR;
+    receiveTimer = new QElapsedTimer();
+    timeoutTimer = new QTimer();
 
+    QObject::connect(port,SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::UniqueConnection);
+    QObject::connect(port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(readyRead()), Qt::UniqueConnection);
+    QObject::connect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()), Qt::UniqueConnection);
+
+    this->open();
 }
 
-Sensor::SensorError Sensor::open()
+void Sensor::open()
 {
+    qDebug() << "Open in thread" << QThread::currentThreadId();
 
     if (port->open(QIODevice::ReadWrite))
     {
-        return SensorError::NO_ERROR;
+        port->clear(QSerialPort::AllDirections);
+        isBusy = true;
+        receiveTimer->start();
+        timeoutTimer->start(timeout);
     }
-    else
-    {
-        return SensorError::CANNOT_OPEN_PORT;
-    }
+}
+
+void Sensor::close()
+{
     port->clear(QSerialPort::AllDirections);
+    port->close();
+    isBusy = false;
 }
 
 void Sensor::printFromAnotherThread()
 {
-    qDebug() << "Hello from another thread" << QThread::currentThreadId();
+    qDebug() << "Hello from thread" << QThread::currentThreadId();
 }
 
 void Sensor::readyRead()
 {
     static quint16 cnt = 0;
+    static QByteArray rxbuf;
+    static qint16 databuf [9];
+
+
+    if (timeoutTimer->isActive())
+    {
+        timeoutTimer->start(timeout);
+    }
+
     rxbuf.append(port->readAll());
-    if (rxbuf.size() > 20)
+    if (rxbuf.size() > 20) // 18 bytes of data + "\r\n" terminator
     {
         while (rxbuf.indexOf(terminator) != -1)
         {
             cnt++;
             int end = rxbuf.indexOf(terminator);
 
-            if (end-18 < 0) // in case of damaged not-full packet of bytes size=18
+            if (end-18 < 0) // in case of damaged packet, size less than 18
             {
                 rxbuf = rxbuf.mid(end+2);
                 end = rxbuf.indexOf(terminator);
-                qDebug() << "removed packet2";
             }
             else
             {
                 QByteArray pack = rxbuf.mid(end-18, 18);
                 if (pack.size() < 18)
                 {
+                    qDebug() << "Wrong packet size = " << pack.size() << " bytes";
                     throw;
                 }
                 //QDebug deb = qDebug();
@@ -83,19 +103,20 @@ void Sensor::readyRead()
                     //deb << databuf[i];
                 }
                 rxbuf = rxbuf.mid(end+2);
+                //delete[] databuf;
                 emit sendSensorData(databuf);
             }
         }
         if (rxbuf.size() > 20)
         {
+            qDebug() << "RxBuffer too large after processing with size = " << rxbuf.size() << " bytes";
             throw;
         }
         if (cnt >= 1000)
         {
-            qint64 ela = tmr.nsecsElapsed();
-            emit sendNsecsElapsed(ela);
-            tmr.restart();
-            cnt = 1;
+            emit sendNsecsElapsed(receiveTimer->nsecsElapsed());
+            receiveTimer->restart();
+            cnt = 0;
         }
     }
 }
@@ -107,12 +128,14 @@ void Sensor::readError()
 
 void Sensor::readTimeout()
 {
-    qDebug() << "Serial read timeout";
+    qDebug() << "Serial read timeout. Port closed.";
+    timeoutTimer->stop();
+    this->close();
 }
 
-void Sensor::finishWork()
+void Sensor::terminateThread()
 {
-    qDebug() << "Thread " << QThread::currentThreadId() << " is over.";
-    emit workFinished();
+    isBusy = false;
+    emit threadTerminating();
 }
 
