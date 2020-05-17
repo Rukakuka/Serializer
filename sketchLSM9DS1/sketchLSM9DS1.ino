@@ -47,13 +47,13 @@ void loop()
     if (t % 1000 == 0)
     {
         pulse();
-        /*
+        
         newtime = micros();
         Serial.print("Average measure time, milliseconds : ");
         Serial.println(((float)(newtime - oldtime)) / (1000 * t));
         t = 0;
         oldtime = micros();
-        */
+        
     }
 
     /*
@@ -72,7 +72,7 @@ void loop()
     Sensor.UpdateBuffer();
     for (int i = 0; i <18; i++)
     {
-        //Sensor.Buf[i] = 123;
+        //Sensor.Buf[i] = i;
         Serial.write(Sensor.Buf[i]);
         //Serial.write("\t");
     }

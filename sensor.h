@@ -11,7 +11,10 @@
 #include <QDebug>
 #include <QByteArray>
 #include <QMetaType>
+#include <QElapsedTimer>
+
 Q_DECLARE_METATYPE(QSerialPort::SerialPortError)
+Q_DECLARE_METATYPE(QByteArray)
 
 class Sensor : public QObject
 {
@@ -33,7 +36,7 @@ public:
     Sensor(QSerialPortInfo *portinfo,
            long baudrate,
            QString name);
-    ~Sensor() {};
+    ~Sensor();
 
     QSerialPortInfo *Portinfo() { return this->portinfo; }
     QString Name() { return this->name; }
@@ -51,9 +54,9 @@ private:
     QString name;
     QString id;
     QSerialPort* port;
-    QTimer *tmr;
     QByteArray rxbuf;
     qint16 databuf[9];
+    QElapsedTimer tmr;
 
 public slots:
     void finishWork();
@@ -67,6 +70,8 @@ private slots:
 
 signals:
     void workFinished();
+    void sendSensorData(qint16 *databuf);
+    void sendNanosElapsed(qint64 nsecs);
 
 };
 
