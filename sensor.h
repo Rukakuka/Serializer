@@ -40,10 +40,7 @@ public:
 
     QSerialPortInfo *Portinfo() { return this->portinfo; }
     QString Name() { return this->name; }
-    QString Id() { return this->id; }
     bool IsBusy() { return this->isBusy; }
-
-
 
 private:
     const QString terminator = "\r\n";
@@ -53,7 +50,6 @@ private:
     bool isBusy;
     QSerialPortInfo *portinfo;
     QString name;
-    QString id;
     QSerialPort* port;
     QElapsedTimer* receiveTimer;
     QTimer* timeoutTimer;

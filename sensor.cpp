@@ -7,7 +7,7 @@ Sensor::Sensor(QSerialPortInfo *portinfo, long baudrate, QString name)
     this->portinfo = portinfo;
     this->baudrate = baudrate;
     this->name = name;
-    this->id = portinfo->serialNumber();
+
     this->port = new QSerialPort(*portinfo);
     this->isBusy = false;
 }
@@ -20,23 +20,22 @@ void Sensor::initialize()
 {
     if (!isBusy)
     {
-    port->setBaudRate(baudrate);
-    port->setParity(QSerialPort::NoParity);
-    port->setDataBits(QSerialPort::Data8);
-    port->setPortName(portinfo->portName());
-    port->setFlowControl(QSerialPort::NoFlowControl);
+        port->setBaudRate(baudrate);
+        port->setParity(QSerialPort::NoParity);
+        port->setDataBits(QSerialPort::Data8);
+        port->setPortName(portinfo->portName());
+        port->setFlowControl(QSerialPort::NoFlowControl);
 
-    receiveTimer = new QElapsedTimer();
-    timeoutTimer = new QTimer();
+        receiveTimer = new QElapsedTimer();
+        timeoutTimer = new QTimer();
 
-    QObject::connect(port,SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::UniqueConnection);
-    QObject::connect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()), Qt::UniqueConnection);
-
-    this->open();
+        QObject::connect(port,SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::UniqueConnection);
+        QObject::connect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()), Qt::UniqueConnection);
+        this->open();
     }
     else
     {
-        qDebug() << "Port " << this->name << "is busy. Stop port first.";
+        qDebug() << "Port " << this->name << "is busy.";
     }
 }
 
@@ -63,7 +62,14 @@ void Sensor::close()
     }
     port->close();
 
-    timeoutTimer->stop();
+    if (timeoutTimer != NULL)
+    {
+        timeoutTimer->stop();
+        delete timeoutTimer;
+        timeoutTimer = NULL;
+        delete receiveTimer;
+        receiveTimer = NULL;
+    }
 
     isBusy = false;
 }
@@ -103,7 +109,7 @@ void Sensor::readyRead()
                 QByteArray pack = rxbuf.mid(end-18, 18);
                 if (pack.size() < 18)
                 {
-                    qDebug() << "Wrong packet size = " << pack.size() << " bytes in port " << this->name;
+                    qDebug() << "Wrong packet size = " << pack.size() << " bytes, in port " << this->name;
                     throw;
                 }
                 //QDebug deb = qDebug();
@@ -119,7 +125,7 @@ void Sensor::readyRead()
         }
         if (rxbuf.size() > 20)
         {
-            qDebug() << "RxBuffer too large after processing with size = " << rxbuf.size() << " bytes in port " << this->name;
+            qDebug() << "RxBuffer too large after processing with size = " << rxbuf.size() << " bytes, in port " << this->name;
             throw;
         }
         if (cnt >= 1000)
