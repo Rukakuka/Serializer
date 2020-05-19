@@ -71,6 +71,7 @@ signals:
     void threadTerminating();
     void sendSensorData(qint16 *databuf);
     void sendNsecsElapsed(qint64 nsecs);
+    void sendMissedPackets(qint64 packets);
 };
 
 #endif // SENSOR_H

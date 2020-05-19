@@ -13,7 +13,7 @@ void setup()
 {
     pinMode(LED_BUILTIN, OUTPUT);
 
-    Serial.begin(1286400);
+    Serial.begin(2500000); // 1286400
 
     Bus.begin();
     Bus.setSpeed(true);

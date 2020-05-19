@@ -8,9 +8,7 @@
 #include <QVariant>
 #include <QThread>
 #include <QTimer>
-
-
-const QList<QString> idList = {"9573535333235110F091"};
+#include <QPair>
 
 int main(int argc, char *argv[])
 {
@@ -18,25 +16,25 @@ int main(int argc, char *argv[])
     MainWindow mainwindow;
     mainwindow.show();
 
-    Serializer serializer(&mainwindow);
+    Serializer serializer;
 
     // TODO : move to serializer
 
-    auto portlist = serializer.GetAvailablePorts();
+    QList<QSerialPortInfo> portlist = serializer.GetAvailablePorts();
 
-    QSerialPortInfo info;
-    QString id;
+    QSerialPortInfo port;
     QList<Sensor*> sensors;
 
-
-
-    foreach(info,portlist)
+    foreach(port, portlist)
     {
-        foreach(id, idList)
+        qDebug() << port.serialNumber();
+        QMapIterator<QString, QString> iter(serializer.idList);
+        while (iter.hasNext())
         {
-            if (info.serialNumber() == id)
+            iter.next();
+            if (port.serialNumber() == iter.key())
             {
-                Sensor *sensor = new Sensor(&info, 1286400, "LSM9DS1"); //
+                Sensor *sensor = new Sensor(&port, 2500000, iter.value()); //
                 QThread *thread = new QThread();
 
                 sensors.append(sensor);
@@ -52,6 +50,7 @@ int main(int argc, char *argv[])
 
                 QObject::connect(sensor, SIGNAL(sendSensorData(qint16*)), &mainwindow, SLOT(SetDataLabels(qint16*)));
                 QObject::connect(sensor, SIGNAL(sendNsecsElapsed(qint64)), &mainwindow, SLOT(SetElapsedLabel(qint64)));
+                QObject::connect(sensor, SIGNAL(sendMissedPackets(qint64)), &mainwindow, SLOT(SetMissedPacketsLabel(qint64)));
 
                 qDebug() << "Sensor added in thread : " << QThread::currentThreadId();
 

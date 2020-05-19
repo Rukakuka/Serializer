@@ -1,9 +1,8 @@
 
 #include "serializer.h"
 
-Serializer::Serializer(MainWindow* mainwindow)
+Serializer::Serializer()
 {
-    this->ui = mainwindow;
     GetAvailablePorts();
 }
 

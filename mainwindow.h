@@ -1,10 +1,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "sensor.h"
+#include "serializer.h"
+
 #include <QMainWindow>
 #include <QDebug>
 #include <QThread>
 #include <QLabel>
+#include <QList>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Mainwindow; }
@@ -17,12 +21,14 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
 private:
     Ui::Mainwindow *ui;
 
 public slots:
     void SetDataLabels(qint16 *databuf);
     void SetElapsedLabel(qint64 nsecs);
+    void SetMissedPacketsLabel(qint64 packets);
 
 private slots:
     void on_btnStart_clicked();

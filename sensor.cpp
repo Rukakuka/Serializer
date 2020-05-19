@@ -84,7 +84,7 @@ void Sensor::readyRead()
     static quint16 cnt = 0;
     static QByteArray rxbuf;
     static qint16 databuf [9];
-
+    static qint64 missedPackets = 0;
 
     if (timeoutTimer->isActive())
     {
@@ -103,6 +103,8 @@ void Sensor::readyRead()
             {
                 rxbuf = rxbuf.mid(end+2);
                 end = rxbuf.indexOf(terminator);
+                missedPackets++;
+                //qDebug() << "Removed packet of data in " << this->name;
             }
             else
             {
@@ -120,18 +122,23 @@ void Sensor::readyRead()
                 }
                 rxbuf = rxbuf.mid(end+2);
                 //delete[] databuf;
-                emit sendSensorData(databuf);
+                if (cnt % 50 == 0)
+                {
+                    emit sendSensorData(databuf);
+                }
             }
         }
         if (rxbuf.size() > 20)
         {
             qDebug() << "RxBuffer too large after processing with size = " << rxbuf.size() << " bytes, in port " << this->name;
-            throw;
+            //throw;
         }
         if (cnt >= 1000)
         {
             emit sendNsecsElapsed(receiveTimer->nsecsElapsed());
+            emit sendMissedPackets(missedPackets);
             receiveTimer->restart();
+            missedPackets = 0;
             cnt = 0;
         }
     }

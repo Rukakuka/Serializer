@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwindow)
 {
     ui->setupUi(this);
@@ -26,20 +27,35 @@ void MainWindow::on_btnStop_clicked()
 
 void MainWindow::SetDataLabels(qint16 *databuf)
 {
-    ui->lineEditAx->setText(QString::number(databuf[0]));
-    ui->lineEditAy->setText(QString::number(databuf[1]));
-    ui->lineEditAz->setText(QString::number(databuf[2]));
-    ui->lineEditGx->setText(QString::number(databuf[3]));
-    ui->lineEditGy->setText(QString::number(databuf[4]));
-    ui->lineEditGz->setText(QString::number(databuf[5]));
-    ui->lineEditMx->setText(QString::number(databuf[6]));
-    ui->lineEditMy->setText(QString::number(databuf[7]));
-    ui->lineEditMz->setText(QString::number(databuf[8]));
+    Sensor* sens = qobject_cast<Sensor*>(sender());
+    static QList<QLineEdit*> list;
+    if (sens->Name() == "LSM9DS1")
+    {
+        list = {ui->lineEditAx,
+                ui->lineEditAy,
+                ui->lineEditAz,
+                ui->lineEditGx,
+                ui->lineEditGy,
+                ui->lineEditGz,
+                ui->lineEditMx,
+                ui->lineEditMy,
+                ui->lineEditMz};
+    }
+
+    for (int i = 0; i < 9; i++)
+    {
+        list[i]->setText(QString::number(databuf[i]));
+    }
 }
 
 void MainWindow::SetElapsedLabel(qint64 nsecs)
 {
     ui->lineEditAvgTime->setText(QString::number(((double)nsecs)/1e9));
+}
+
+void MainWindow::SetMissedPacketsLabel(qint64 packets)
+{
+    ui->lineEditMissedPackets->setText(QString::number(packets));
 }
 
 void MainWindow::on_btnTerminate_clicked()
