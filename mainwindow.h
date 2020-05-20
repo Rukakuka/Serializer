@@ -27,8 +27,7 @@ private:
 
 public slots:
     void SetDataLabels(qint16 *databuf);
-    void SetElapsedLabel(qint64 nsecs);
-    void SetMissedPacketsLabel(qint64 packets);
+    void SetServiceData(qint64 *serviceData);
 
 private slots:
     void on_btnStart_clicked();

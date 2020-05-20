@@ -40,7 +40,7 @@
          <item>
           <widget class="QLabel" name="labelAverageTime">
            <property name="text">
-            <string>Average receive time, msec:</string>
+            <string>Average receive time local, msec:</string>
            </property>
           </widget>
          </item>
@@ -51,7 +51,7 @@
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>40</width>
+             <width>45</width>
              <height>20</height>
             </size>
            </property>
@@ -344,7 +344,7 @@
         <property name="geometry">
          <rect>
           <x>410</x>
-          <y>60</y>
+          <y>90</y>
           <width>251</width>
           <height>31</height>
          </rect>
@@ -364,7 +364,7 @@
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>50</width>
+             <width>80</width>
              <height>20</height>
             </size>
            </property>
@@ -372,6 +372,41 @@
          </item>
          <item>
           <widget class="QLineEdit" name="lineEditMissedPackets"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="horizontalLayoutWidget_4">
+        <property name="geometry">
+         <rect>
+          <x>410</x>
+          <y>60</y>
+          <width>251</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="FrequencyLayout">
+         <item>
+          <widget class="QLabel" name="label222">
+           <property name="text">
+            <string>Average send time remote, msec:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>45</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEditFrequency"/>
          </item>
         </layout>
        </widget>

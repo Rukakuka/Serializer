@@ -38,6 +38,7 @@ void setup()
 unsigned long oldtime = 0;
 unsigned long newtime = 0;
 unsigned long t = 0;
+byte tbuf[4];
 
 void loop()
 {
@@ -76,7 +77,14 @@ void loop()
         Serial.write(Sensor.Buf[i]);
         //Serial.write("\t");
     }
-    Serial.write("\r\n"); // ASCII ">" symbol
+    newtime = micros();
+    tbuf[0] = newtime & 255;
+    tbuf[1] = (newtime >> 8)  & 255;
+    tbuf[2] = (newtime >> 16) & 255;
+    tbuf[3] = (newtime >> 24) & 255;
+
+    Serial.write(tbuf, sizeof(tbuf));
+    Serial.write("\r\n");
     
     /*
     Serial.write(0x3C);

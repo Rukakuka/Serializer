@@ -48,14 +48,11 @@ void MainWindow::SetDataLabels(qint16 *databuf)
     }
 }
 
-void MainWindow::SetElapsedLabel(qint64 nsecs)
+void MainWindow::SetServiceData(qint64 *serviceData)
 {
-    ui->lineEditAvgTime->setText(QString::number(((double)nsecs)/1e9));
-}
-
-void MainWindow::SetMissedPacketsLabel(qint64 packets)
-{
-    ui->lineEditMissedPackets->setText(QString::number(packets));
+    ui->lineEditAvgTime->setText(QString::number(((double)serviceData[0])/1e9));
+    ui->lineEditMissedPackets->setText(QString::number(serviceData[1]));
+    ui->lineEditFrequency->setText(QString::number(((double)(serviceData[2]))/1e6));
 }
 
 void MainWindow::on_btnTerminate_clicked()

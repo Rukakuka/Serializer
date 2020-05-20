@@ -45,7 +45,7 @@ public:
 private:
     const QString terminator = "\r\n";
     const long timeout = 5000;
-
+    const int messageSize = 24;
     long baudrate;
     bool isBusy;
     QSerialPortInfo *portinfo;
@@ -70,8 +70,7 @@ private slots:
 signals:
     void threadTerminating();
     void sendSensorData(qint16 *databuf);
-    void sendNsecsElapsed(qint64 nsecs);
-    void sendMissedPackets(qint64 packets);
+    void sendSensorServiceData(qint64* misc);
 };
 
 #endif // SENSOR_H

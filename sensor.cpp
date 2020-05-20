@@ -85,6 +85,10 @@ void Sensor::readyRead()
     static QByteArray rxbuf;
     static qint16 databuf [9];
     static qint64 missedPackets = 0;
+    static quint64 timestamp = 0;
+    static quint64 prev_timestamp = 0;
+    static int dataSize = messageSize-terminator.length();
+
 
     if (timeoutTimer->isActive())
     {
@@ -92,14 +96,14 @@ void Sensor::readyRead()
     }
 
     rxbuf.append(port->readAll());
-    if (rxbuf.size() > 20) // 18 bytes of data + "\r\n" terminator
+    if (rxbuf.size() > messageSize) // 18 bytes of data + 4 bytes timestamp + "\r\n" terminator
     {
         while (rxbuf.indexOf(terminator) != -1)
         {
             cnt++;
             int end = rxbuf.indexOf(terminator);
 
-            if (end-18 < 0) // in case of damaged packet, size less than 18
+            if (end-dataSize < 0) // in case of damaged packet, size less than 18+4
             {
                 rxbuf = rxbuf.mid(end+2);
                 end = rxbuf.indexOf(terminator);
@@ -108,8 +112,8 @@ void Sensor::readyRead()
             }
             else
             {
-                QByteArray pack = rxbuf.mid(end-18, 18);
-                if (pack.size() < 18)
+                QByteArray pack = rxbuf.mid(end-dataSize, dataSize);
+                if (pack.size() < dataSize)
                 {
                     qDebug() << "Wrong packet size = " << pack.size() << " bytes, in port " << this->name;
                     throw;
@@ -120,24 +124,36 @@ void Sensor::readyRead()
                     databuf[i/2] = (qint16)(pack[i+1]*255 + pack[i]);
                     //deb << databuf[i];
                 }
+
+                timestamp = quint64((unsigned char)(pack[21]) << 24 |
+                                      (unsigned char)(pack[20]) << 16 |
+                                       (unsigned char)(pack[19]) << 8 |
+                                        (unsigned char)(pack[18]));
+
                 rxbuf = rxbuf.mid(end+2);
-                //delete[] databuf;
                 if (cnt % 50 == 0)
                 {
                     emit sendSensorData(databuf);
                 }
             }
         }
-        if (rxbuf.size() > 20)
+        if (rxbuf.size() > messageSize)
         {
             qDebug() << "RxBuffer too large after processing with size = " << rxbuf.size() << " bytes, in port " << this->name;
             //throw;
         }
         if (cnt >= 1000)
         {
-            emit sendNsecsElapsed(receiveTimer->nsecsElapsed());
-            emit sendMissedPackets(missedPackets);
+            static qint64 serviceData[3];
+
+            serviceData[0] = receiveTimer->nsecsElapsed();
+            serviceData[1] = missedPackets;
+            serviceData[2] = timestamp - prev_timestamp;
+
+            emit sendSensorServiceData(serviceData);
+
             receiveTimer->restart();
+            prev_timestamp = timestamp;
             missedPackets = 0;
             cnt = 0;
         }
