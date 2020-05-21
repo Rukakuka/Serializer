@@ -13,10 +13,9 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    MainWindow mainwindow;
-    mainwindow.show();
-
     Serializer serializer;
+    MainWindow mainwindow(nullptr, &serializer);
+    mainwindow.show();
 
     // TODO : move to serializer
 
@@ -52,9 +51,7 @@ int main(int argc, char *argv[])
                 QObject::connect(sensor, SIGNAL(sendSensorServiceData(qint64*)), &mainwindow, SLOT(SetServiceData(qint64*)));
 
                 qDebug() << "Sensor added in thread : " << QThread::currentThreadId();
-
                 thread->start();
-
             }
         }
     }

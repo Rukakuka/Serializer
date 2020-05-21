@@ -19,7 +19,10 @@ public:
     Serializer();
     ~Serializer() {};
 
-    QMap<QString, QString> idList = { {"9573535333235110F091", "LSM9DS1"} };
+    const QMap<QString, QString> idList = { {"9573535333235110F091", "LSM9DS1"},
+                                            {"00000000000000000001", "xxxxxx"},
+                                            {"00000000000000000002", "Dummy"}};
+
     QList<QSerialPortInfo> GetAvailablePorts();
 
 private:

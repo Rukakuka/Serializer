@@ -7,14 +7,14 @@ Sensor::Sensor(QSerialPortInfo *portinfo, long baudrate, QString name)
     this->portinfo = portinfo;
     this->baudrate = baudrate;
     this->name = name;
-
     this->port = new QSerialPort(*portinfo);
     this->isBusy = false;
 }
 
-Sensor::~Sensor() {
-}
+Sensor::~Sensor()
+{
 
+}
 
 void Sensor::initialize()
 {
@@ -25,10 +25,8 @@ void Sensor::initialize()
         port->setDataBits(QSerialPort::Data8);
         port->setPortName(portinfo->portName());
         port->setFlowControl(QSerialPort::NoFlowControl);
-
         receiveTimer = new QElapsedTimer();
         timeoutTimer = new QTimer();
-
         QObject::connect(port,SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::UniqueConnection);
         QObject::connect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()), Qt::UniqueConnection);
         this->open();
@@ -41,7 +39,7 @@ void Sensor::initialize()
 
 void Sensor::open()
 {
-    if (port->open(QIODevice::ReadWrite))
+    if (port->open(QIODevice::ReadOnly))
     {
         port->clear(QSerialPort::AllDirections);
         isBusy = true;
@@ -88,7 +86,6 @@ void Sensor::readyRead()
     static quint64 timestamp = 0;
     static quint64 prev_timestamp = 0;
     static int dataSize = messageSize-terminator.length();
-
 
     if (timeoutTimer->isActive())
     {
@@ -147,8 +144,8 @@ void Sensor::readyRead()
             static qint64 serviceData[3];
 
             serviceData[0] = receiveTimer->nsecsElapsed();
-            serviceData[1] = missedPackets;
-            serviceData[2] = timestamp - prev_timestamp;
+            serviceData[1] = timestamp - prev_timestamp;
+            serviceData[2] = missedPackets;
 
             emit sendSensorServiceData(serviceData);
 

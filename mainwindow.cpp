@@ -2,9 +2,28 @@
 #include "ui_mainwindow.h"
 
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwindow)
+MainWindow::MainWindow(QWidget *parent, Serializer *serializer) : QMainWindow(parent), ui(new Ui::Mainwindow)
 {
     ui->setupUi(this);
+    this->serializer = serializer;
+
+    this->lineEditList = new QList<QLineEdit*>;
+
+    lineEditList->append(ui->lineEditAx);
+    lineEditList->append(ui->lineEditAy),
+    lineEditList->append(ui->lineEditAz),
+    lineEditList->append(ui->lineEditGx),
+    lineEditList->append(ui->lineEditGy),
+    lineEditList->append(ui->lineEditGz),
+    lineEditList->append(ui->lineEditMx),
+    lineEditList->append(ui->lineEditMy),
+    lineEditList->append(ui->lineEditMz);
+
+    QPair<QString, QString> pair;
+    foreach (QString key, serializer->idList.keys())
+    {
+        ui->comboSelectPort->addItem(serializer->idList.value(key));
+    }
 }
 
 MainWindow::~MainWindow()
@@ -28,31 +47,24 @@ void MainWindow::on_btnStop_clicked()
 void MainWindow::SetDataLabels(qint16 *databuf)
 {
     Sensor* sens = qobject_cast<Sensor*>(sender());
-    static QList<QLineEdit*> list;
-    if (sens->Name() == "LSM9DS1")
+    if (sens->Name() == ui->comboSelectPort->currentText())
     {
-        list = {ui->lineEditAx,
-                ui->lineEditAy,
-                ui->lineEditAz,
-                ui->lineEditGx,
-                ui->lineEditGy,
-                ui->lineEditGz,
-                ui->lineEditMx,
-                ui->lineEditMy,
-                ui->lineEditMz};
-    }
-
-    for (int i = 0; i < 9; i++)
-    {
-        list[i]->setText(QString::number(databuf[i]));
+        for (int i = 0; i < lineEditList->size(); i++)
+        {
+            lineEditList->at(i)->setText(QString::number(databuf[i]));
+        }
     }
 }
 
 void MainWindow::SetServiceData(qint64 *serviceData)
 {
-    ui->lineEditAvgTime->setText(QString::number(((double)serviceData[0])/1e9));
-    ui->lineEditMissedPackets->setText(QString::number(serviceData[1]));
-    ui->lineEditFrequency->setText(QString::number(((double)(serviceData[2]))/1e6));
+    Sensor* sens = qobject_cast<Sensor*>(sender());
+    if (sens->Name() == ui->comboSelectPort->currentText())
+    {
+        ui->lineEditAverageLocalTime->setText(QString::number(((double)serviceData[0])/1e9));
+        ui->lineEditAverageRemoteTime->setText(QString::number(((double)(serviceData[1]))/1e6));
+        ui->lineEditMissedPackets->setText(QString::number(serviceData[2]));
+    }
 }
 
 void MainWindow::on_btnTerminate_clicked()
