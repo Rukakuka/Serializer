@@ -22,7 +22,6 @@ int main(int argc, char *argv[])
     QList<QSerialPortInfo> portlist = serializer.GetAvailablePorts();
 
     QSerialPortInfo port;
-    QList<Sensor*> sensors;
 
     foreach(port, portlist)
     {
@@ -36,7 +35,6 @@ int main(int argc, char *argv[])
                 Sensor *sensor = new Sensor(&port, 2500000, iter.value()); //
                 QThread *thread = new QThread();
 
-                sensors.append(sensor);
                 sensor->moveToThread(thread);
 
                 // automatically delete thread and task object when work is done:
