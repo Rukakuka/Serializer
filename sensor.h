@@ -48,7 +48,7 @@ private:
     const int messageSize = 24;
     long baudrate;
     bool isBusy;
-    QSerialPortInfo *portinfo;
+    QSerialPortInfo* portinfo;
     QString name;
     QSerialPort* port;
     QElapsedTimer* receiveTimer;

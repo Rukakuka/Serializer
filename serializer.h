@@ -10,6 +10,14 @@
 #include <QSerialPortInfo>
 #include <QObject>
 #include <QMap>
+#include <QApplication>
+#include <QDebug>
+#include <QVariant>
+#include <QThread>
+#include <QTimer>
+#include <QPair>
+
+#include "sensor.h"
 
 class Serializer : public QObject
 {
@@ -23,7 +31,9 @@ public:
                                             {"00000000000000000001", "xxxxxx"},
                                             {"00000000000000000002", "Dummy"}};
 
-    QList<QSerialPortInfo> GetAvailablePorts();
+    QList<QSerialPortInfo>* GetAvailablePorts();
+    QList<Sensor*>* Begin(QList<QSerialPortInfo> *portlist);
+    Sensor* AddSensor(QSerialPortInfo port, QString name);
 
 private:
 
