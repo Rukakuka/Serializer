@@ -6,11 +6,9 @@ Serializer::Serializer()
     GetAvailablePorts();
 }
 
-QList<QSerialPortInfo>* Serializer::GetAvailablePorts()
+QList<QSerialPortInfo> Serializer::GetAvailablePorts()
 {
     QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
-    QList<QSerialPortInfo>* list = new QList<QSerialPortInfo>();
-    list = &ports;
     /*
     QSerialPortInfo port;
 
@@ -19,10 +17,10 @@ QList<QSerialPortInfo>* Serializer::GetAvailablePorts()
         qDebug() << port.manufacturer() << port.serialNumber() << port.productIdentifier() << port.vendorIdentifier();
     }
     */
-    return list;
+    return ports;
 }
 
-QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo>* portlist)
+QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo> portlist)
 {
     QSerialPortInfo port;
     QList<Sensor*>* list = new QList<Sensor*>();
@@ -36,8 +34,8 @@ QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo>* portlist)
             iter.next();
             if (port.serialNumber() == iter.key())
             {
-                Sensor* s = AddSensor(port, iter.value());
-                list->append(s);
+                Sensor* sensor = this->AddSensor(port,iter.value());
+                list->append(sensor);
             }
         }
     }
@@ -46,14 +44,14 @@ QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo>* portlist)
 
 Sensor* Serializer::AddSensor(QSerialPortInfo port, QString name)
 {
-    static Sensor *sensor = new Sensor(&port, 2500000, name);
+    Sensor *sensor = new Sensor(port, 2500000, name);
     QThread *thread = new QThread();
 
     sensor->moveToThread(thread);
     // automatically delete thread and task object when work is done:
     QObject::connect(sensor, SIGNAL(threadTerminating()), sensor, SLOT(deleteLater()));
     QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    qDebug() << "Sensor added in thread : " << QThread::currentThreadId();
+    qDebug() << "Sensor " << name << " added in thread : " << QThread::currentThreadId();
 
     thread->start();
     return sensor;

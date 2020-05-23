@@ -31,8 +31,8 @@ public:
                                             {"00000000000000000001", "xxxxxx"},
                                             {"00000000000000000002", "Dummy"}};
 
-    QList<QSerialPortInfo>* GetAvailablePorts();
-    QList<Sensor*>* Begin(QList<QSerialPortInfo> *portlist);
+    QList<QSerialPortInfo> GetAvailablePorts();
+    QList<Sensor*>* Begin(QList<QSerialPortInfo> portlist);
     Sensor* AddSensor(QSerialPortInfo port, QString name);
 
 private:

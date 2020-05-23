@@ -33,12 +33,12 @@ public:
 
     explicit Sensor(QObject *parent = nullptr);
 
-    Sensor(QSerialPortInfo *portinfo,
+    Sensor(QSerialPortInfo portinfo,
            long baudrate,
            QString name);
     ~Sensor();
 
-    QSerialPortInfo *Portinfo() { return this->portinfo; }
+    QSerialPortInfo Portinfo() { return this->portinfo; }
     QString Name() { return this->name; }
     bool IsBusy() { return this->isBusy; }
 
@@ -48,7 +48,7 @@ private:
     const int messageSize = 24;
     long baudrate;
     bool isBusy;
-    QSerialPortInfo* portinfo;
+    QSerialPortInfo portinfo;
     QString name;
     QSerialPort* port;
     QElapsedTimer* receiveTimer;

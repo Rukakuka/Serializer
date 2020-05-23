@@ -17,24 +17,20 @@ int main(int argc, char *argv[])
     MainWindow mainwindow(nullptr, &serializer);
     mainwindow.show();
 
-    // TODO : move to serializer
+    QList<QSerialPortInfo> availablePorts = serializer.GetAvailablePorts();
+    //QList<Sensor*>* ports = new QList<Sensor*>();
 
-    QList<QSerialPortInfo>* portlist = new QList<QSerialPortInfo>();
-    portlist = serializer.GetAvailablePorts();
+    QList<Sensor*>* ports = serializer.Begin(availablePorts);
 
-    QList<Sensor*> list = *serializer.Begin(portlist);
-
-    Sensor* sensor;
-    foreach (sensor, list)
+    for (int i = 0; i < ports->size(); i++)
     {
-        QObject::connect(&mainwindow, SIGNAL(stopSerial()), sensor, SLOT(close()));
-        QObject::connect(&mainwindow, SIGNAL(beginSerial()), sensor, SLOT(initialize()));
-        QObject::connect(&mainwindow, SIGNAL(terminateSerial()), sensor, SLOT(terminateThread()));
+        QObject::connect(&mainwindow, SIGNAL(stopSerial()), ports->at(i), SLOT(close()));
+        QObject::connect(&mainwindow, SIGNAL(beginSerial()), ports->at(i), SLOT(initialize()));
+        QObject::connect(&mainwindow, SIGNAL(terminateSerial()), ports->at(i), SLOT(terminateThread()));
 
-        QObject::connect(sensor, SIGNAL(sendSensorData(qint16*)), &mainwindow, SLOT(SetDataLabels(qint16*)));
-        QObject::connect(sensor, SIGNAL(sendSensorServiceData(qint64*)), &mainwindow, SLOT(SetServiceData(qint64*)));
+        QObject::connect(ports->at(i), SIGNAL(sendSensorData(qint16*)), &mainwindow, SLOT(SetDataLabels(qint16*)));
+        QObject::connect(ports->at(i), SIGNAL(sendSensorServiceData(qint64*)), &mainwindow, SLOT(SetServiceData(qint64*)));
     }
-
     qDebug() << "Setup done";
     // /TODO
 

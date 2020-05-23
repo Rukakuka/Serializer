@@ -1,13 +1,13 @@
 #include "sensor.h"
 
-Sensor::Sensor(QSerialPortInfo *portinfo, long baudrate, QString name)
+Sensor::Sensor(QSerialPortInfo portinfo, long baudrate, QString name)
 {
     qRegisterMetaType<QSerialPort::SerialPortError>();
     qRegisterMetaType<QByteArray>();
     this->portinfo = portinfo;
     this->baudrate = baudrate;
     this->name = name;
-    this->port = new QSerialPort(*portinfo);
+    this->port = new QSerialPort(portinfo);
     this->isBusy = false;
 }
 
@@ -23,7 +23,7 @@ void Sensor::initialize()
         port->setBaudRate(baudrate);
         port->setParity(QSerialPort::NoParity);
         port->setDataBits(QSerialPort::Data8);
-        port->setPortName(portinfo->portName());
+        port->setPortName(portinfo.portName());
         port->setFlowControl(QSerialPort::NoFlowControl);
         receiveTimer = new QElapsedTimer();
         timeoutTimer = new QTimer();
