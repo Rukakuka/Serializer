@@ -4,6 +4,7 @@ Sensor::Sensor(QSerialPortInfo portinfo, long baudrate, QString name)
 {
     qRegisterMetaType<QSerialPort::SerialPortError>();
     qRegisterMetaType<QByteArray>();
+
     this->portinfo = portinfo;
     this->baudrate = baudrate;
     this->name = name;

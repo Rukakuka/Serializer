@@ -41,6 +41,7 @@ public:
     QSerialPortInfo Portinfo() { return this->portinfo; }
     QString Name() { return this->name; }
     bool IsBusy() { return this->isBusy; }
+    long Baudrate() { return this->baudrate; }
 
 private:
     const QString terminator = "\r\n";

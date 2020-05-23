@@ -28,13 +28,14 @@ QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo> portlist)
     foreach(port, portlist)
     {
         qDebug() << port.serialNumber();
+
         QMapIterator<QString, QString> iter(this->idList);
         while (iter.hasNext())
         {
             iter.next();
             if (port.serialNumber() == iter.key())
             {
-                Sensor* sensor = this->AddSensor(port,iter.value());
+                Sensor* sensor = this->AddSensor(port, 2500000, iter.value());
                 list->append(sensor);
             }
         }
@@ -42,9 +43,9 @@ QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo> portlist)
     return list;
 }
 
-Sensor* Serializer::AddSensor(QSerialPortInfo port, QString name)
+Sensor* Serializer::AddSensor(QSerialPortInfo port, long baud, QString name)
 {
-    Sensor *sensor = new Sensor(port, 2500000, name);
+    Sensor *sensor = new Sensor(port, baud, name);
     QThread *thread = new QThread();
 
     sensor->moveToThread(thread);
@@ -56,3 +57,4 @@ Sensor* Serializer::AddSensor(QSerialPortInfo port, QString name)
     thread->start();
     return sensor;
 }
+

@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
 
     //qDebug() << sensors[0]->Name() << sensors[0]->Id();
     //qDebug() << QVariant::fromValue(sensors[0]->open()).toString();
+    mainwindow.SetTableCurrentPorts(ports);
     return app.exec();
 }
 

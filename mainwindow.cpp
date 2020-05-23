@@ -43,6 +43,41 @@ void MainWindow::on_btnStop_clicked()
     // emit to Serializer
 }
 
+void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
+{
+    const int columns = 4;
+    QStandardItemModel* model = new QStandardItemModel(ports->size(), columns, this);
+    model->setHorizontalHeaderLabels({"Port", "Serial ID", "Name", "Baudrate"});
+
+    QListIterator<Sensor*> iter(*ports);
+
+    int row = 0;
+    while (iter.hasNext())
+    {
+        Sensor* sensor = iter.next();
+        QList<QString> list;
+
+        list.append(sensor->Portinfo().portName());
+        list.append(sensor->Portinfo().serialNumber());
+        list.append(sensor->Name());
+        list.append(QString::number(sensor->Baudrate()));
+
+        for (int col = 0; col < columns; col++)
+        {
+            QStandardItem *item = new QStandardItem(list.at(col));
+            if (col == 0)
+            {
+               item->setEditable(false);
+            }
+            model->setItem(row, col, item);
+        }
+    }
+    ui->tableCurrentConfig->setModel(model);
+    ui->tableCurrentConfig->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::Interactive);
+    ui->tableCurrentConfig->resizeColumnsToContents();
+    ui->tabWidget->setCurrentIndex(0);
+}
+
 
 void MainWindow::SetDataLabels(qint16 *databuf)
 {

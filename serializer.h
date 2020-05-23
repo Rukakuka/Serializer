@@ -33,7 +33,7 @@ public:
 
     QList<QSerialPortInfo> GetAvailablePorts();
     QList<Sensor*>* Begin(QList<QSerialPortInfo> portlist);
-    Sensor* AddSensor(QSerialPortInfo port, QString name);
+    Sensor* AddSensor(QSerialPortInfo port, long baud, QString name);
 
 private:
 

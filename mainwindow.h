@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QList>
 #include <QLineEdit>
+#include <QStandardItemModel>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Mainwindow; }
@@ -31,6 +32,7 @@ private:
 public slots:
     void SetDataLabels(qint16 *databuf);
     void SetServiceData(qint64 *serviceData);
+    void SetTableCurrentPorts(QList<Sensor*>* ports);
 
 private slots:
     void on_btnStart_clicked();
