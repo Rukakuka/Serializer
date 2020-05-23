@@ -31,6 +31,7 @@ void Sensor::initialize()
         QObject::connect(port,SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::UniqueConnection);
         QObject::connect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()), Qt::UniqueConnection);
         this->open();
+        qDebug() << "Sensor " << this->Name() << "initialized in thread " << QThread::currentThreadId();
     }
     else
     {

@@ -13,9 +13,6 @@
 #include <QMetaType>
 #include <QElapsedTimer>
 
-Q_DECLARE_METATYPE(QSerialPort::SerialPortError)
-Q_DECLARE_METATYPE(QByteArray)
-
 class Sensor : public QObject
 {
     Q_OBJECT

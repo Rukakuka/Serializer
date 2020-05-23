@@ -11,10 +11,18 @@
 #include <QList>
 #include <QLineEdit>
 #include <QStandardItemModel>
+#include <QApplication>
+#include <QDesktopWidget>
+#include <QTableWidget>
+#include <QTableWidgetItem>
+#include <QCoreApplication>
+#include <QHeaderView>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Mainwindow; }
 QT_END_NAMESPACE
+
+Q_DECLARE_METATYPE(QTableWidget*)
 
 class MainWindow : public QMainWindow
 {
@@ -38,11 +46,14 @@ private slots:
     void on_btnStart_clicked();
     void on_btnStop_clicked();
     void on_btnTerminate_clicked();
+    void on_btnLoadConfig_clicked();
+    void on_btnSaveConfig_clicked();
 
 signals:
     void stopSerial();
     void beginSerial();
     void terminateSerial();
-
+    void saveConfig(QTableWidget*);
+    void loadConfig();
 };
 #endif // SERIALIZER_H

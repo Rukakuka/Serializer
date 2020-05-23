@@ -43,6 +43,12 @@ QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo> portlist)
     return list;
 }
 
+void Serializer::SaveConfig(QTableWidget *table)
+{
+    int rows = table->rowCount();
+    qDebug() << "Rows = " << rows;
+}
+
 Sensor* Serializer::AddSensor(QSerialPortInfo port, long baud, QString name)
 {
     Sensor *sensor = new Sensor(port, baud, name);
@@ -52,7 +58,7 @@ Sensor* Serializer::AddSensor(QSerialPortInfo port, long baud, QString name)
     // automatically delete thread and task object when work is done:
     QObject::connect(sensor, SIGNAL(threadTerminating()), sensor, SLOT(deleteLater()));
     QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    qDebug() << "Sensor " << name << " added in thread : " << QThread::currentThreadId();
+    qDebug() << "Sensor " << name << " added";
 
     thread->start();
     return sensor;

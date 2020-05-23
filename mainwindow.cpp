@@ -1,9 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-
 MainWindow::MainWindow(QWidget *parent, Serializer *serializer) : QMainWindow(parent), ui(new Ui::Mainwindow)
 {
+    qRegisterMetaType<QTableWidget*>();
+
     ui->setupUi(this);
     this->serializer = serializer;
 
@@ -24,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent, Serializer *serializer) : QMainWindow(pa
     {
         ui->comboSelectPort->addItem(serializer->idList.value(key));
     }
+    QObject::connect(this, &MainWindow::saveConfig, serializer, &Serializer::SaveConfig);
 }
 
 MainWindow::~MainWindow()
@@ -31,23 +33,15 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_btnStart_clicked()
-{
-    emit beginSerial();
-    // emit to Serializer
-}
-
-void MainWindow::on_btnStop_clicked()
-{
-    emit stopSerial();
-    // emit to Serializer
-}
-
 void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
 {
-    const int columns = 4;
-    QStandardItemModel* model = new QStandardItemModel(ports->size(), columns, this);
-    model->setHorizontalHeaderLabels({"Port", "Serial ID", "Name", "Baudrate"});
+    QStringList horizontalHeaderLabels = {"Port", "Unique ID", "Name", "Baudrate", "Status"};
+    int columns = horizontalHeaderLabels.size();
+
+    ui->tableCurrentConfig->setRowCount(ports->size());
+    ui->tableCurrentConfig->setColumnCount(columns);
+    ui->tableCurrentConfig->setShowGrid(true);
+    ui->tableCurrentConfig->setHorizontalHeaderLabels(horizontalHeaderLabels);
 
     QListIterator<Sensor*> iter(*ports);
 
@@ -61,18 +55,21 @@ void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
         list.append(sensor->Portinfo().serialNumber());
         list.append(sensor->Name());
         list.append(QString::number(sensor->Baudrate()));
+        list.append("StatusName"); // TODO : Serizlizer::PortStatus::Ready / Busy / Offline
 
         for (int col = 0; col < columns; col++)
         {
-            QStandardItem *item = new QStandardItem(list.at(col));
-            if (col == 0)
+            QTableWidgetItem *item = new QTableWidgetItem();
+            item->setData(Qt::DisplayRole, list.at(col));
+            if (col == 0 || col == 4)
             {
-               item->setEditable(false);
+               item->setFlags(item->flags() ^ Qt::ItemIsEditable);
             }
-            model->setItem(row, col, item);
+            ui->tableCurrentConfig->setItem(row, col, item);
         }
+        row++;
     }
-    ui->tableCurrentConfig->setModel(model);
+
     ui->tableCurrentConfig->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::Interactive);
     ui->tableCurrentConfig->resizeColumnsToContents();
     ui->tabWidget->setCurrentIndex(0);
@@ -102,7 +99,27 @@ void MainWindow::SetServiceData(qint64 *serviceData)
     }
 }
 
+void MainWindow::on_btnStart_clicked()
+{
+    emit beginSerial();
+}
+
+void MainWindow::on_btnStop_clicked()
+{
+    emit stopSerial();
+}
+
 void MainWindow::on_btnTerminate_clicked()
 {
     emit terminateSerial();
+}
+
+void MainWindow::on_btnLoadConfig_clicked()
+{
+    emit loadConfig();
+}
+
+void MainWindow::on_btnSaveConfig_clicked()
+{
+    emit saveConfig(ui->tableCurrentConfig);
 }

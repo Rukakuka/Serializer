@@ -5,10 +5,8 @@
 
 #include <QApplication>
 #include <QDebug>
-#include <QVariant>
 #include <QThread>
-#include <QTimer>
-#include <QPair>
+#include <QObject>
 
 int main(int argc, char *argv[])
 {
@@ -31,8 +29,7 @@ int main(int argc, char *argv[])
         QObject::connect(ports->at(i), SIGNAL(sendSensorData(qint16*)), &mainwindow, SLOT(SetDataLabels(qint16*)));
         QObject::connect(ports->at(i), SIGNAL(sendSensorServiceData(qint64*)), &mainwindow, SLOT(SetServiceData(qint64*)));
     }
-    qDebug() << "Setup done";
-    // /TODO
+    qDebug() << "Setup done in thread " << QThread::currentThreadId();
 
     //qDebug() << sensors[0]->Name() << sensors[0]->Id();
     //qDebug() << QVariant::fromValue(sensors[0]->open()).toString();

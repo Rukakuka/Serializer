@@ -12,10 +12,11 @@
 #include <QMap>
 #include <QApplication>
 #include <QDebug>
-#include <QVariant>
 #include <QThread>
 #include <QTimer>
-#include <QPair>
+#include <QDesktopWidget>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 
 #include "sensor.h"
 
@@ -33,10 +34,12 @@ public:
 
     QList<QSerialPortInfo> GetAvailablePorts();
     QList<Sensor*>* Begin(QList<QSerialPortInfo> portlist);
-    Sensor* AddSensor(QSerialPortInfo port, long baud, QString name);
+
+public slots:
+    void SaveConfig(QTableWidget* table);
 
 private:
-
+    Sensor* AddSensor(QSerialPortInfo port, long baud, QString name);
 };
 
 #endif
