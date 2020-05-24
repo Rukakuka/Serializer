@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent, Serializer *serializer) : QMainWindow(pa
         ui->comboSelectPort->addItem(serializer->idList.value(key));
     }
     QObject::connect(this, &MainWindow::saveConfig, serializer, &Serializer::SaveConfig);
+    QObject::connect(this, &MainWindow::loadConfig, serializer, &Serializer::LoadConfig);
 }
 
 MainWindow::~MainWindow()
@@ -35,7 +36,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
 {
-    QStringList horizontalHeaderLabels = {"Port", "Unique ID", "Name", "Baudrate", "Status"};
+    QStringList horizontalHeaderLabels = {"Port", "Identifier", "Name", "Baudrate", "Status"};
     int columns = horizontalHeaderLabels.size();
 
     ui->tableCurrentConfig->setRowCount(ports->size());
@@ -55,7 +56,7 @@ void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
         list.append(sensor->Portinfo().serialNumber());
         list.append(sensor->Name());
         list.append(QString::number(sensor->Baudrate()));
-        list.append("StatusName"); // TODO : Serizlizer::PortStatus::Ready / Busy / Offline
+        list.append("StatusName"); // TODO : Serizlizer::PortStatus::Ready / BUSY / OFFLINE
 
         for (int col = 0; col < columns; col++)
         {
@@ -116,10 +117,22 @@ void MainWindow::on_btnTerminate_clicked()
 
 void MainWindow::on_btnLoadConfig_clicked()
 {
-    emit loadConfig();
+    QString path = QFileDialog::getOpenFileName(this, "Open Configuration", "", "XML files (*.xml)");
+    emit loadConfig(path);
 }
 
 void MainWindow::on_btnSaveConfig_clicked()
 {
-    emit saveConfig(ui->tableCurrentConfig);
+    QString path = QFileDialog::getSaveFileName(nullptr, "configuration", ".", "XML files (*.xml)" );
+    emit saveConfig(ui->tableCurrentConfig, path);
+}
+
+void MainWindow::on_btnAddDevice_clicked()
+{
+    ui->tableCurrentConfig->insertRow(ui->tableCurrentConfig->rowCount());
+    QTableWidgetItem *it;
+    it = ui->tableCurrentConfig->item(ui->tableCurrentConfig->rowCount()-1, 0);
+    //it->setFlags(it->flags() ^ Qt::ItemIsEditable);
+    it = ui->tableCurrentConfig->item(ui->tableCurrentConfig->rowCount()-1, 4);
+    //it->setFlags(it->flags() ^ Qt::ItemIsEditable);
 }

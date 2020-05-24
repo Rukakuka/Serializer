@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Device n="0">
+        <Identifier>9573535333235110F091</Identifier>
+        <Name>LSM9DS1</Name>
+        <Baudrate>2500000</Baudrate>
+    </Device>
+</Configuration>

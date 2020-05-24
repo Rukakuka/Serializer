@@ -21,7 +21,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="main">
        <attribute name="title">
@@ -257,8 +257,21 @@
           <x>0</x>
           <y>0</y>
           <width>461</width>
-          <height>311</height>
+          <height>313</height>
          </rect>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnAddDevice">
+        <property name="geometry">
+         <rect>
+          <x>470</x>
+          <y>280</y>
+          <width>101</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Add device</string>
         </property>
        </widget>
       </widget>

@@ -17,6 +17,7 @@
 #include <QTableWidgetItem>
 #include <QCoreApplication>
 #include <QHeaderView>
+#include <QFileDialog>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Mainwindow; }
@@ -49,11 +50,13 @@ private slots:
     void on_btnLoadConfig_clicked();
     void on_btnSaveConfig_clicked();
 
+    void on_btnAddDevice_clicked();
+
 signals:
     void stopSerial();
     void beginSerial();
     void terminateSerial();
-    void saveConfig(QTableWidget*);
-    void loadConfig();
+    void saveConfig(QTableWidget*, QString);
+    void loadConfig(QString);
 };
 #endif // SERIALIZER_H
