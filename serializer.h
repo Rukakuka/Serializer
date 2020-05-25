@@ -21,6 +21,7 @@
 #include <QXmlStreamWriter>
 #include <QTableView>
 #include <QStandardItemModel>
+#include <QDir>
 
 #include "sensor.h"
 
@@ -32,9 +33,7 @@ public:
     Serializer();
     ~Serializer() {};
 
-    const QMap<QString, QString> idList = { {"9573535333235110F091", "LSM9DS1"},
-                                            {"00000000000000000001", "xxxxxx"},
-                                            {"00000000000000000002", "Dummy"}};
+    QTableView *configuration;
 
     QList<QSerialPortInfo> GetAvailablePorts();
     QList<Sensor*>* Begin(QList<QSerialPortInfo> portlist);
@@ -48,6 +47,8 @@ private:
     bool AddElement(QXmlStreamReader *reader, QStandardItemModel *model, int &row);
     void AddDeviceConfig(QXmlStreamReader *reader, QStandardItemModel *model, int &row);
     void ParseConfig(QXmlStreamReader *reader, QStandardItemModel *model);
+
+    const QString defaultConfigurationName = "configuration.xml";
 
 signals:
     void setNewConfig(QTableView*);

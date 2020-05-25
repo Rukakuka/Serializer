@@ -21,10 +21,12 @@ MainWindow::MainWindow(QWidget *parent, Serializer *serializer) : QMainWindow(pa
     lineEditList->append(ui->lineEditMz);
 
     QPair<QString, QString> pair;
+    /*
     foreach (QString key, serializer->idList.keys())
     {
         ui->comboSelectPort->addItem(serializer->idList.value(key));
     }
+    */
     QObject::connect(this, &MainWindow::saveConfig, serializer, &Serializer::SaveConfig);
     QObject::connect(this, &MainWindow::loadConfig, serializer, &Serializer::LoadConfig);
 }

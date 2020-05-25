@@ -18,9 +18,12 @@ QList<QSerialPortInfo> Serializer::GetAvailablePorts()
 
 QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo> portlist)
 {
+    LoadConfig(defaultConfigurationName);
+    qDebug() << QFileInfo(".").absoluteDir();
     QSerialPortInfo port;
     QList<Sensor*>* list = new QList<Sensor*>();
 
+    /*
     foreach(port, portlist)
     {
         QMapIterator<QString, QString> iter(this->idList);
@@ -33,7 +36,7 @@ QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo> portlist)
                 list->append(sensor);
             }
         }
-    }
+    }*/
     return list;
 }
 
@@ -89,20 +92,23 @@ void Serializer::SaveConfig(QTableWidget *table, QString path)
 void Serializer::LoadConfig(QString path)
 {
     QFile file(path);
-    QTableView *table = new QTableView();
+    QTableView *configuration = new QTableView();
     QStandardItemModel *model = new QStandardItemModel();
     model -> setColumnCount(5);
 
     if (!file.open(QIODevice::ReadOnly))
     {
-        qDebug() << "Cannot open file for read";
+        qDebug() << "Cannot open configuration for read";
         return;
     }
 
     QXmlStreamReader reader(&file);
     ParseConfig(&reader, model);
-    table->setModel(model);
-    table->show();
+    configuration->setModel(model);
+
+    configuration->show();
+
+
 }
 
 void Serializer::ParseConfig(QXmlStreamReader* reader, QStandardItemModel* model)
@@ -127,20 +133,17 @@ void Serializer::AddDeviceConfig(QXmlStreamReader* reader, QStandardItemModel* m
     if(reader->name().contains("Device"))
     {
         QString count = reader->attributes().value("count").toString();
-        row++;
-        model->insertRow(row);
+        model->insertRow(++row);
         while(reader->readNextStartElement())
         {
             if (!AddElement(reader, model, row))
             {
-                row--;
-                model->removeRow(row);
-                qDebug() << "Skipped device config at position" << count;
+                model->removeRow(--row);
+                qDebug() << "Skipped device configuration at position" << count;
             }
         }
     }
 }
-
 
 bool Serializer::AddElement(QXmlStreamReader* reader, QStandardItemModel* model, int &row)
 {
