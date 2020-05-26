@@ -21,12 +21,7 @@ MainWindow::MainWindow(QWidget *parent, Serializer *serializer) : QMainWindow(pa
     lineEditList->append(ui->lineEditMz);
 
     QPair<QString, QString> pair;
-    /*
-    foreach (QString key, serializer->idList.keys())
-    {
-        ui->comboSelectPort->addItem(serializer->idList.value(key));
-    }
-    */
+
     QObject::connect(this, &MainWindow::saveConfig, serializer, &Serializer::SaveConfig);
     QObject::connect(this, &MainWindow::loadConfig, serializer, &Serializer::LoadConfig);
 }
@@ -54,11 +49,28 @@ void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
         Sensor* sensor = iter.next();
         QList<QString> list;
 
-        list.append(sensor->Portinfo().portName());
-        list.append(sensor->Portinfo().serialNumber());
+        list.append(sensor->Portname());
+        list.append(sensor->Identifier());
         list.append(sensor->Name());
         list.append(QString::number(sensor->Baudrate()));
-        list.append("StatusName"); // TODO : Serizlizer::PortStatus::Ready / BUSY / OFFLINE
+
+        if (sensor->IsConnected())
+        {
+            if (sensor->IsBusy())
+            {
+                list.append("BUSY"); // TODO : Serializer::PortStatus::Ready / BUSY / OFFLINE
+            }
+            else
+            {
+                list.append("READY");
+            }
+        }
+        else
+        {
+            list.append("OFFLINE");
+        }
+
+        ui->comboSelectPort->addItem(sensor->Name());
 
         for (int col = 0; col < columns; col++)
         {
@@ -75,7 +87,7 @@ void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
 
     ui->tableCurrentConfig->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::Interactive);
     ui->tableCurrentConfig->resizeColumnsToContents();
-    ui->tabWidget->setCurrentIndex(0);
+    ui->tabWidget->setCurrentIndex(0);    
 }
 
 

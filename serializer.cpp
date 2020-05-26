@@ -9,47 +9,70 @@ Serializer::Serializer()
 QList<QSerialPortInfo> Serializer::GetAvailablePorts()
 {
     QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
-    foreach(QSerialPortInfo port, ports)
+
+    /*foreach(QSerialPortInfo port, ports)
     {
         qDebug() << port.manufacturer() << port.serialNumber() << port.productIdentifier() << port.vendorIdentifier();
-    }
+    }*/
+
     return ports;
 }
 
 QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo> portlist)
-{
-    LoadConfig(defaultConfigurationName);
-    qDebug() << QFileInfo(".").absoluteDir();
-    QSerialPortInfo port;
+{    
+    QDir dir("");
+    dir.cdUp();
+    QTableView* configuration = LoadConfig(dir.path() + defaultConfigurationName);
+
     QList<Sensor*>* list = new QList<Sensor*>();
 
-    /*
-    foreach(port, portlist)
+    for (int row = 0; row < configuration->model()->rowCount(); row++)
     {
-        QMapIterator<QString, QString> iter(this->idList);
-        while (iter.hasNext())
+        bool sensorIsOnline = false;
+        int i = 0;
+        for (; i < portlist.count(); i++)
         {
-            iter.next();
-            if (port.serialNumber() == iter.key())
+            if (portlist[i].serialNumber() == configuration->model()->index(row, 0).data().toString())
             {
-                Sensor* sensor = this->AddSensor(port, 2500000, iter.value());
-                list->append(sensor);
+                sensorIsOnline = true;
+                break;
             }
         }
-    }*/
+        Sensor* sensor;
+        if (sensorIsOnline)
+        {
+            sensor = this->AddSensor(portlist[i],
+                                     configuration->model()->index(row, 1).data().toString(),
+                                     configuration->model()->index(row, 2).data().toLongLong());
+        }
+        else
+        {
+            sensor = this->AddSensor(configuration->model()->index(row, 0).data().toString(),
+                                     configuration->model()->index(row, 1).data().toString(),
+                                     configuration->model()->index(row, 2).data().toLongLong());
+        }
+        list->append(sensor);
+    }
     return list;
 }
 
-Sensor* Serializer::AddSensor(QSerialPortInfo port, long baud, QString name)
+Sensor* Serializer::AddSensor(QString identifier, QString name, long baudrate)
 {
-    Sensor *sensor = new Sensor(port, baud, name);
+    Sensor *sensor = new Sensor(identifier, baudrate, name);
+    qDebug() << "Sensor " << name << " added (offline)";
+    return sensor;
+}
+
+Sensor* Serializer::AddSensor(QSerialPortInfo port, QString name, long baudrate)
+{
+    Sensor *sensor = new Sensor(port, baudrate, name);
     QThread *thread = new QThread();
 
     sensor->moveToThread(thread);
     // automatically delete thread and task object when work is done:
     QObject::connect(sensor, SIGNAL(threadTerminating()), sensor, SLOT(deleteLater()));
     QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    qDebug() << "Sensor " << name << " added";
+    qDebug() << "Sensor " << name << " added (connected)";
 
     thread->start();
     return sensor;
@@ -89,26 +112,28 @@ void Serializer::SaveConfig(QTableWidget *table, QString path)
     }
 }
 
-void Serializer::LoadConfig(QString path)
+QTableView* Serializer::LoadConfig(QString path)
 {
     QFile file(path);
     QTableView *configuration = new QTableView();
     QStandardItemModel *model = new QStandardItemModel();
-    model -> setColumnCount(5);
+    model -> setColumnCount(3);
 
     if (!file.open(QIODevice::ReadOnly))
     {
         qDebug() << "Cannot open configuration for read";
-        return;
     }
+    else
+    {
+        QXmlStreamReader reader(&file);
+        ParseConfig(&reader, model);
+        model->setHorizontalHeaderLabels({ "Identifier", "Name", "Baudrate" });
 
-    QXmlStreamReader reader(&file);
-    ParseConfig(&reader, model);
-    configuration->setModel(model);
-
-    configuration->show();
-
-
+        configuration->setModel(model);
+        //configuration->show();
+    }
+    emit setNewConfig(configuration);
+    return configuration;
 }
 
 void Serializer::ParseConfig(QXmlStreamReader* reader, QStandardItemModel* model)
@@ -152,7 +177,7 @@ bool Serializer::AddElement(QXmlStreamReader* reader, QStandardItemModel* model,
         QString s = reader->readElementText();
         if (model->findItems(s,Qt::MatchExactly).count() == 0)
         {
-            model->setItem(row-1, 1, new QStandardItem(s));
+            model->setItem(row-1, 0, new QStandardItem(s));
         }
         else
         {
@@ -163,14 +188,14 @@ bool Serializer::AddElement(QXmlStreamReader* reader, QStandardItemModel* model,
     else if(reader->name() == "Name")
     {
         QString s = reader->readElementText();
-        model->setItem(row-1, 2, new QStandardItem(s));
+        model->setItem(row-1, 1, new QStandardItem(s));
     }
     else if(reader->name() == "Baudrate")
     {
         long baud = reader->readElementText().toLong();
         if (baud != 0)
         {
-            model->setItem(row-1, 3, new QStandardItem(QString::number(baud)));
+            model->setItem(row-1, 2, new QStandardItem(QString::number(baud)));
         }
         else
         {

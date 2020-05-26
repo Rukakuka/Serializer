@@ -1,33 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
     <Device count="0">
-		<Name>LSM9DS1</Name>
-        <Identifier>9573535333235110F091</Identifier>        
+        <Identifier>9573535333235110F091</Identifier>
+        <Name>LSM9DS1</Name>
         <Baudrate>2500000</Baudrate>
     </Device>
-	<Device count="1">
-		<Name>LSM9DS1</Name>
-        <Identifier>9573535333235110F091</Identifier>        
-        <Baudrate>25dsfsdfsd0</Baudrate>
-    </Device>
-	<Device count="2">
-		<Name>LSM9DS1</Name>
-        <Identifier>9573535333235110F091</Identifier>        
-        <Baudrate>25dsfsdfsd0</Baudrate>
-    </Device>
-	<Device count="3">
-		<Name>LIS304</Name>
-        <Identifier>7773535333235110F091</Identifier>        
-        <Baudrate>9600</Baudrate>
-    </Device>
-	<Device count="4">
-		<Name>LSM9DS1</Name>
-        <Identifier>9573535333235110F091</Identifier>        
-        <Baudrate>25dsfsdfsd0</Baudrate>
-    </Device>
-	<Device count="5">
-		<Name>LIS303</Name>
-        <Identifier>8883535333235110F091</Identifier>        
-        <Baudrate>9600</Baudrate>
+    <Device count="1">
+        <Identifier>55737303030351202252</Identifier>
+        <Name>LSM303</Name>
+        <Baudrate>1500000</Baudrate>
     </Device>
 </Configuration>

@@ -33,10 +33,17 @@ public:
     Sensor(QSerialPortInfo portinfo,
            long baudrate,
            QString name);
+
+    Sensor(QString identifier,
+           long baudrate,
+           QString name);
+
     ~Sensor();
 
-    QSerialPortInfo Portinfo() { return this->portinfo; }
+    QString Identifier() { return this->identifier; }
+    QString Portname() { return this->portname; }
     QString Name() { return this->name; }
+    bool IsConnected() { return this->isConnected; }
     bool IsBusy() { return this->isBusy; }
     long Baudrate() { return this->baudrate; }
 
@@ -46,7 +53,9 @@ private:
     const int messageSize = 24;
     long baudrate;
     bool isBusy;
-    QSerialPortInfo portinfo;
+    bool isConnected;
+    QString identifier;
+    QString portname;
     QString name;
     QSerialPort* port;
     QElapsedTimer* receiveTimer;

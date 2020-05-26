@@ -2,14 +2,24 @@
 
 Sensor::Sensor(QSerialPortInfo portinfo, long baudrate, QString name)
 {
-    qRegisterMetaType<QSerialPort::SerialPortError>();
-    qRegisterMetaType<QByteArray>();
-
-    this->portinfo = portinfo;
+    this->portname = portinfo.portName();
+    this->identifier = portinfo.serialNumber();
     this->baudrate = baudrate;
     this->name = name;
     this->port = new QSerialPort(portinfo);
     this->isBusy = false;
+    this->isConnected = true;
+}
+
+Sensor::Sensor(QString identifier, long baudrate, QString name)
+{
+    this->portname = "";
+    this->identifier = identifier;
+    this->baudrate = baudrate;
+    this->name = name;
+    this->port = new QSerialPort();
+    this->isBusy = false;
+    this->isConnected = false;
 }
 
 Sensor::~Sensor()
@@ -19,12 +29,13 @@ Sensor::~Sensor()
 
 void Sensor::initialize()
 {
-    if (!isBusy)
+    if (!isBusy && isConnected)
     {
+        this->isConnected = true;
         port->setBaudRate(baudrate);
         port->setParity(QSerialPort::NoParity);
         port->setDataBits(QSerialPort::Data8);
-        port->setPortName(portinfo.portName());
+        port->setPortName(portname);
         port->setFlowControl(QSerialPort::NoFlowControl);
         receiveTimer = new QElapsedTimer();
         timeoutTimer = new QTimer();
