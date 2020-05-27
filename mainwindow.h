@@ -52,6 +52,8 @@ private slots:
 
     void on_btnAddDevice_clicked();
 
+    void on_btnRemoveDevice_clicked();
+
 signals:
     void stopSerial();
     void beginSerial();

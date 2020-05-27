@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < ports->size(); i++) // do sensor connections
     {
-        if (ports->at(i)->IsConnected())
+        if (ports->at(i)->CurrentStatus() != Sensor::OFFLINE)
         {
             QObject::connect(&mainwindow, SIGNAL(stopSerial()), ports->at(i), SLOT(close()));
             QObject::connect(&mainwindow, SIGNAL(beginSerial()), ports->at(i), SLOT(initialize()));

@@ -72,7 +72,7 @@ Sensor* Serializer::AddSensor(QSerialPortInfo port, QString name, long baudrate)
     // automatically delete thread and task object when work is done:
     QObject::connect(sensor, SIGNAL(threadTerminating()), sensor, SLOT(deleteLater()));
     QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    qDebug() << "Sensor " << name << " added (connected)";
+    qDebug() << "Sensor " << name << " added (ready)";
 
     thread->start();
     return sensor;

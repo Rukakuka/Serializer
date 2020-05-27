@@ -18,15 +18,17 @@ class Sensor : public QObject
     Q_OBJECT
 
 public:
-    enum SensorError
+    enum SensorStatus
     {
-        CANNOT_OPEN_PORT,
-        WRONG_SENSOR_ID,
-        WRONG_BAUDRATE,
-        READING_ERROR,
-        NO_ERROR
-    };
-    Q_ENUM(SensorError)
+        READ_ERROR,
+        PORT_OPEN_ERR,
+        TIMEOUT,
+        READY,
+        OFFLINE,
+        BUSY,
+        TERMINATED
+    };    
+    Q_ENUM(SensorStatus)
 
     explicit Sensor(QObject *parent = nullptr);
 
@@ -43,14 +45,15 @@ public:
     QString Identifier() { return this->identifier; }
     QString Portname() { return this->portname; }
     QString Name() { return this->name; }
-    bool IsConnected() { return this->isConnected; }
-    bool IsBusy() { return this->isBusy; }
     long Baudrate() { return this->baudrate; }
+    SensorStatus CurrentStatus() { return currentStatus; }
 
 private:
-    const QString terminator = "\r\n";
+
+    const QString terminator = "\r\n";    
     const long timeout = 5000;
     const int messageSize = 24;
+
     long baudrate;
     bool isBusy;
     bool isConnected;
@@ -60,8 +63,10 @@ private:
     QSerialPort* port;
     QElapsedTimer* receiveTimer;
     QTimer* timeoutTimer;
+    SensorStatus currentStatus;
 
     void open();
+    void setCurrentStatus(SensorStatus st);
 
 public slots:
     void initialize();
@@ -73,11 +78,13 @@ private slots:
     void readTimeout();
     void printFromAnotherThread();
 
-
 signals:
     void threadTerminating();
     void sendSensorData(qint16 *databuf);
     void sendSensorServiceData(qint64* misc);
+    void statusChanged(SensorStatus st);
 };
+
+Q_DECLARE_METATYPE(Sensor::SensorStatus)
 
 #endif // SENSOR_H

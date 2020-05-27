@@ -2,24 +2,24 @@
 
 Sensor::Sensor(QSerialPortInfo portinfo, long baudrate, QString name)
 {
+    qRegisterMetaType<Sensor::SensorStatus>();
     this->portname = portinfo.portName();
     this->identifier = portinfo.serialNumber();
     this->baudrate = baudrate;
     this->name = name;
     this->port = new QSerialPort(portinfo);
-    this->isBusy = false;
-    this->isConnected = true;
+    setCurrentStatus(Sensor::READY);
 }
 
 Sensor::Sensor(QString identifier, long baudrate, QString name)
 {
+    qRegisterMetaType<Sensor::SensorStatus>();
     this->portname = "";
     this->identifier = identifier;
     this->baudrate = baudrate;
     this->name = name;
     this->port = new QSerialPort();
-    this->isBusy = false;
-    this->isConnected = false;
+    setCurrentStatus(Sensor::OFFLINE);
 }
 
 Sensor::~Sensor()
@@ -27,26 +27,33 @@ Sensor::~Sensor()
 
 }
 
+void Sensor::setCurrentStatus(Sensor::SensorStatus st)
+{
+    currentStatus = st;
+    emit statusChanged(st);
+}
+
 void Sensor::initialize()
 {
-    if (!isBusy && isConnected)
+    if (currentStatus == Sensor::READY)
     {
         this->isConnected = true;
         port->setBaudRate(baudrate);
+        port->setPortName(portname);
         port->setParity(QSerialPort::NoParity);
         port->setDataBits(QSerialPort::Data8);
-        port->setPortName(portname);
         port->setFlowControl(QSerialPort::NoFlowControl);
+
         receiveTimer = new QElapsedTimer();
         timeoutTimer = new QTimer();
+
         QObject::connect(port,SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::UniqueConnection);
         QObject::connect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()), Qt::UniqueConnection);
         this->open();
-        qDebug() << "Sensor " << this->Name() << "initialized in thread " << QThread::currentThreadId();
     }
     else
-    {
-        qDebug() << "Port " << this->name << "is busy.";
+    {        
+        qDebug() << "Port" << this->name << "cannot be opened. Port status is" << currentStatus;
     }
 }
 
@@ -55,13 +62,15 @@ void Sensor::open()
     if (port->open(QIODevice::ReadOnly))
     {
         port->clear(QSerialPort::AllDirections);
-        isBusy = true;
         receiveTimer->start();
         timeoutTimer->start(timeout);
+        setCurrentStatus(Sensor::BUSY);
+        qDebug() << "Sensor" << this->Name() << "initialized in thread" << QThread::currentThreadId();
     }
     else
     {
-        qDebug() << "Err opening port " << this->name;
+        setCurrentStatus(Sensor::PORT_OPEN_ERR);
+        qDebug() << "Port" << this->name << "open error";
     }
 }
 
@@ -81,8 +90,10 @@ void Sensor::close()
         delete receiveTimer;
         receiveTimer = NULL;
     }
-
-    isBusy = false;
+    if (currentStatus == Sensor::BUSY)
+    {
+        setCurrentStatus(Sensor::READY);
+    }
 }
 
 void Sensor::printFromAnotherThread()
@@ -125,7 +136,7 @@ void Sensor::readyRead()
                 QByteArray pack = rxbuf.mid(end-dataSize, dataSize);
                 if (pack.size() < dataSize)
                 {
-                    qDebug() << "Wrong packet size = " << pack.size() << " bytes, in port " << this->name;
+                    qDebug() << "\n\nWrong packet size = " << pack.size() << " bytes, in port " << this->name;
                     throw;
                 }
                 //QDebug deb = qDebug();
@@ -149,8 +160,8 @@ void Sensor::readyRead()
         }
         if (rxbuf.size() > messageSize)
         {
+            setCurrentStatus(Sensor::READ_ERROR);
             qDebug() << "RxBuffer too large after processing with size = " << rxbuf.size() << " bytes, in port " << this->name;
-            //throw;
         }
         if (cnt >= 1000)
         {
@@ -172,12 +183,14 @@ void Sensor::readyRead()
 
 void Sensor::readTimeout()
 {
+    setCurrentStatus(Sensor::TIMEOUT);
     qDebug() << "Serial read timeout. Port " << this->name << "closed.";
     this->close();
 }
 
 void Sensor::terminateThread()
 {
+    setCurrentStatus(Sensor::TERMINATED);
     qDebug() << "Thread terminating. Port " << this->name << "closed.";
     this->close();
     emit threadTerminating();

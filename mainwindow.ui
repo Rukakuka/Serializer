@@ -221,15 +221,15 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QWidget" name="settings">
+      <widget class="QWidget" name="configuration">
        <attribute name="title">
-        <string>Settings</string>
+        <string>Configuration</string>
        </attribute>
        <widget class="QPushButton" name="btnLoadConfig">
         <property name="geometry">
          <rect>
           <x>470</x>
-          <y>10</y>
+          <y>0</y>
           <width>101</width>
           <height>21</height>
          </rect>
@@ -242,7 +242,7 @@
         <property name="geometry">
          <rect>
           <x>470</x>
-          <y>40</y>
+          <y>30</y>
           <width>101</width>
           <height>21</height>
          </rect>
@@ -265,13 +265,26 @@
         <property name="geometry">
          <rect>
           <x>470</x>
-          <y>280</y>
+          <y>100</y>
           <width>101</width>
           <height>21</height>
          </rect>
         </property>
         <property name="text">
          <string>Add device</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnRemoveDevice">
+        <property name="geometry">
+         <rect>
+          <x>470</x>
+          <y>130</y>
+          <width>101</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Remove device</string>
         </property>
        </widget>
       </widget>

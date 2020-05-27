@@ -24,6 +24,9 @@ MainWindow::MainWindow(QWidget *parent, Serializer *serializer) : QMainWindow(pa
 
     QObject::connect(this, &MainWindow::saveConfig, serializer, &Serializer::SaveConfig);
     QObject::connect(this, &MainWindow::loadConfig, serializer, &Serializer::LoadConfig);
+
+    ui->tableCurrentConfig->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
+    ui->tableCurrentConfig->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
 }
 
 MainWindow::~MainWindow()
@@ -53,22 +56,7 @@ void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
         list.append(sensor->Identifier());
         list.append(sensor->Name());
         list.append(QString::number(sensor->Baudrate()));
-
-        if (sensor->IsConnected())
-        {
-            if (sensor->IsBusy())
-            {
-                list.append("BUSY"); // TODO : Serializer::PortStatus::Ready / BUSY / OFFLINE
-            }
-            else
-            {
-                list.append("READY");
-            }
-        }
-        else
-        {
-            list.append("OFFLINE");
-        }
+        list.append(QString(QVariant::fromValue(sensor->CurrentStatus()).toString()));
 
         ui->comboSelectPort->addItem(sensor->Name());
 
@@ -144,9 +132,13 @@ void MainWindow::on_btnSaveConfig_clicked()
 void MainWindow::on_btnAddDevice_clicked()
 {
     ui->tableCurrentConfig->insertRow(ui->tableCurrentConfig->rowCount());
-    QTableWidgetItem *it;
-    it = ui->tableCurrentConfig->item(ui->tableCurrentConfig->rowCount()-1, 0);
-    //it->setFlags(it->flags() ^ Qt::ItemIsEditable);
-    it = ui->tableCurrentConfig->item(ui->tableCurrentConfig->rowCount()-1, 4);
-    //it->setFlags(it->flags() ^ Qt::ItemIsEditable);
+}
+
+void MainWindow::on_btnRemoveDevice_clicked()
+{
+    QModelIndexList indexes =  ui->tableCurrentConfig->selectionModel()->selectedRows();
+    int countRow = indexes.count();
+
+    for( int i = countRow; i > 0; i--)
+           ui->tableCurrentConfig->removeRow( indexes.at(i-1).row());
 }
