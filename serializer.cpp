@@ -20,9 +20,7 @@ QList<QSerialPortInfo> Serializer::GetAvailablePorts()
 
 QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo> portlist)
 {    
-    QDir dir("");
-    dir.cdUp();
-    QTableView* configuration = LoadConfig(dir.path() + defaultConfigurationName);
+    QTableView* configuration = LoadConfig(defaultConfigurationPath);
 
     QList<Sensor*>* list = new QList<Sensor*>();
 
@@ -133,6 +131,7 @@ QTableView* Serializer::LoadConfig(QString path)
         //configuration->show();
     }
     emit setNewConfig(configuration);
+
     return configuration;
 }
 
