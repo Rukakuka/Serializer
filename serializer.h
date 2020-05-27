@@ -37,13 +37,18 @@ public:
     QTableView *configuration;
 
     QList<QSerialPortInfo> GetAvailablePorts();
-    QList<Sensor*>* Begin(QList<QSerialPortInfo> portlist);
+
 
 public slots:
+
+    QList<Sensor*>* Begin(QList<QSerialPortInfo> portlist);
+    void Stop();
+
     void SaveConfig(QTableWidget* table, QString path);
     QTableView* LoadConfig(QString path);
 
 private:
+
 
     Sensor* AddSensor(QSerialPortInfo port, QString name, long baudrate);
     Sensor* AddSensor(QString identifier, QString name, long baudrate);
@@ -52,7 +57,7 @@ private:
     void AddDeviceConfig(QXmlStreamReader *reader, QStandardItemModel *model, int &row);
     void ParseConfig(QXmlStreamReader *reader, QStandardItemModel *model);
 
-    const QString defaultConfigurationName = "/Serializer/configuration.xml";
+    const QString defaultConfigurationPath = "E:/QtProjects/Serializer/configuration.xml";
 
 signals:
     void setNewConfig(QTableView*);
