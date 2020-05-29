@@ -22,14 +22,14 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < ports->size(); i++) // do sensor connections
     {
-        if (ports->at(i)->CurrentStatus() != Sensor::OFFLINE)
+        if (true) //(ports->at(i)->CurrentStatus() != Sensor::OFFLINE)
         {
             QObject::connect(&mainwindow, SIGNAL(stopSerial()), ports->at(i), SLOT(close()));
-            QObject::connect(&mainwindow, SIGNAL(beginSerial()), ports->at(i), SLOT(initialize()));
+            QObject::connect(&mainwindow, SIGNAL(beginSerial()), ports->at(i), SLOT(begin()));
             QObject::connect(&mainwindow, SIGNAL(terminateSerial()), ports->at(i), SLOT(terminateThread()));
 
             QObject::connect(ports->at(i), SIGNAL(sendSensorData(qint16*)), &mainwindow, SLOT(SetDataLabels(qint16*)));
-            QObject::connect(ports->at(i), SIGNAL(sendSensorServiceData(qint64*)), &mainwindow, SLOT(SetServiceData(qint64*)));
+            QObject::connect(ports->at(i), SIGNAL(sendSensorServiceData(Sensor::ServiceData*)), &mainwindow, SLOT(SetServiceData(Sensor::ServiceData*)));
         }
     }
     qDebug() << "Setup done in thread " << QThread::currentThreadId();

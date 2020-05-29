@@ -54,16 +54,21 @@ QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo> portlist)
     return list;
 }
 
+void Serializer::Stop()
+{
+
+}
+
 Sensor* Serializer::AddSensor(QString identifier, QString name, long baudrate)
 {
-    Sensor *sensor = new Sensor(identifier, baudrate, name);
+    Sensor *sensor = new Sensor("", identifier, baudrate, name);
     qDebug() << "Sensor " << name << " added (offline)";
     return sensor;
 }
 
 Sensor* Serializer::AddSensor(QSerialPortInfo port, QString name, long baudrate)
 {
-    Sensor *sensor = new Sensor(port, baudrate, name);
+    Sensor *sensor = new Sensor(port.portName(), port.serialNumber(), baudrate, name);
     QThread *thread = new QThread();
 
     sensor->moveToThread(thread);
@@ -131,7 +136,6 @@ QTableView* Serializer::LoadConfig(QString path)
         //configuration->show();
     }
     emit setNewConfig(configuration);
-
     return configuration;
 }
 

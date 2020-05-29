@@ -40,7 +40,7 @@ private:
 
 public slots:
     void SetDataLabels(qint16 *databuf);
-    void SetServiceData(qint64 *serviceData);
+    void SetServiceData(Sensor::ServiceData *sd);
     void SetTableCurrentPorts(QList<Sensor*>* ports);
 
 private slots:
@@ -49,9 +49,7 @@ private slots:
     void on_btnTerminate_clicked();
     void on_btnLoadConfig_clicked();
     void on_btnSaveConfig_clicked();
-
     void on_btnAddDevice_clicked();
-
     void on_btnRemoveDevice_clicked();
 
 signals:

@@ -91,14 +91,14 @@ void MainWindow::SetDataLabels(qint16 *databuf)
     }
 }
 
-void MainWindow::SetServiceData(qint64 *serviceData)
+void MainWindow::SetServiceData(Sensor::ServiceData *sd)
 {
     Sensor* sens = qobject_cast<Sensor*>(sender());
     if (sens->Name() == ui->comboSelectPort->currentText())
     {
-        ui->lineEditAverageLocalTime->setText(QString::number(((double)serviceData[0])/1e9));
-        ui->lineEditAverageRemoteTime->setText(QString::number(((double)(serviceData[1]))/1e6));
-        ui->lineEditMissedPackets->setText(QString::number(serviceData[2]));
+        ui->lineEditAverageLocalTime->setText(QString::number(((double)(sd->LocalTimeElapsed))/1e9));
+        ui->lineEditAverageRemoteTime->setText(QString::number(((double)(sd->RemoteTimeElapsed))/1e6));
+        ui->lineEditMissedPackets->setText(QString::number(sd->DeclinedPackets));
     }
 }
 

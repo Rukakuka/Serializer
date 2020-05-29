@@ -20,32 +20,32 @@ class Sensor : public QObject
 public:
     enum SensorStatus
     {
-        READ_ERROR,
+        PARSE_ERROR,
         PORT_OPEN_ERR,
         TIMEOUT,
         READY,
-        OFFLINE,
         BUSY,
         TERMINATED
     };    
     Q_ENUM(SensorStatus)
 
+    struct ServiceData
+    {
+        double LocalTimeElapsed;
+        double RemoteTimeElapsed;
+        uint   DeclinedPackets;
+    };
+
     explicit Sensor(QObject *parent = nullptr);
 
-    Sensor(QSerialPortInfo portinfo,
-           long baudrate,
-           QString name);
-
-    Sensor(QString identifier,
-           long baudrate,
-           QString name);
+    Sensor(QString portname, QString identifier, long baudrate, QString name);
 
     ~Sensor();
 
-    QString Identifier() { return this->identifier; }
-    QString Portname() { return this->portname; }
-    QString Name() { return this->name; }
-    long Baudrate() { return this->baudrate; }
+    QString Identifier() { return identifier; }
+    QString Portname() { return portname; }
+    QString Name() { return name; }
+    long Baudrate() { return baudrate; }
     SensorStatus CurrentStatus() { return currentStatus; }
 
 private:
@@ -55,8 +55,6 @@ private:
     const int messageSize = 24;
 
     long baudrate;
-    bool isBusy;
-    bool isConnected;
     QString identifier;
     QString portname;
     QString name;
@@ -69,22 +67,23 @@ private:
     void setCurrentStatus(SensorStatus st);
 
 public slots:
-    void initialize();
+    void begin();
     void close();
     void terminateThread();
 
 private slots:
     void readyRead();
     void readTimeout();
-    void printFromAnotherThread();
+    void printFromAnotherThread();    
 
 signals:
     void threadTerminating();
     void sendSensorData(qint16 *databuf);
-    void sendSensorServiceData(qint64* misc);
+    void sendSensorServiceData(Sensor::ServiceData*);
     void statusChanged(SensorStatus st);
 };
 
 Q_DECLARE_METATYPE(Sensor::SensorStatus)
+Q_DECLARE_METATYPE(Sensor::ServiceData)
 
 #endif // SENSOR_H
