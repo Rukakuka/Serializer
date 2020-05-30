@@ -20,65 +20,41 @@ QList<QSerialPortInfo> Serializer::GetAvailablePorts()
 
 QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo> portlist)
 {    
-    QTableView* configuration = LoadConfig(defaultConfigurationPath);
+    QList<Sensor*>* configuration = LoadConfig(defaultConfigurationPath);
 
-    QList<Sensor*>* list = new QList<Sensor*>();
+    QList<Sensor*>* sensors = new QList<Sensor*>();
 
-    for (int row = 0; row < configuration->model()->rowCount(); row++)
+    for (int i = 0; i < configuration->count(); i++)
     {
-        bool sensorIsOnline = false;
-        int i = 0;
-        for (; i < portlist.count(); i++)
+        for (int j = 0; j < portlist.count(); j++)
         {
-            if (portlist[i].serialNumber() == configuration->model()->index(row, 0).data().toString())
+            if (portlist[j].serialNumber() == configuration->at(i)->Identifier())
             {
-                sensorIsOnline = true;
-                break;
+
+                Sensor *sensor = new Sensor(portlist[j].portName(),
+                                            configuration->at(i)->Identifier(),
+                                            configuration->at(i)->Baudrate(),
+                                            configuration->at(i)->Name());
+                QThread *thread = new QThread();
+
+                sensor->moveToThread(thread);
+                // automatically delete thread and task object when work is done:
+                QObject::connect(sensor, SIGNAL(threadTerminating()), sensor, SLOT(deleteLater()));
+                QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+                qDebug() << "Sensor " << sensor->Name() << " added";
+                sensors->append(sensor);
+                thread->start();                
             }
         }
-        Sensor* sensor;
-        if (sensorIsOnline)
-        {
-            sensor = this->AddSensor(portlist[i],
-                                     configuration->model()->index(row, 1).data().toString(),
-                                     configuration->model()->index(row, 2).data().toLongLong());
-        }
-        else
-        {
-            sensor = this->AddSensor(configuration->model()->index(row, 0).data().toString(),
-                                     configuration->model()->index(row, 1).data().toString(),
-                                     configuration->model()->index(row, 2).data().toLongLong());
-        }
-        list->append(sensor);
     }
-    return list;
+    delete configuration;
+    configuration = NULL;
+    return sensors;
 }
 
 void Serializer::Stop()
 {
 
-}
-
-Sensor* Serializer::AddSensor(QString identifier, QString name, long baudrate)
-{
-    Sensor *sensor = new Sensor("", identifier, baudrate, name);
-    qDebug() << "Sensor " << name << " added (offline)";
-    return sensor;
-}
-
-Sensor* Serializer::AddSensor(QSerialPortInfo port, QString name, long baudrate)
-{
-    Sensor *sensor = new Sensor(port.portName(), port.serialNumber(), baudrate, name);
-    QThread *thread = new QThread();
-
-    sensor->moveToThread(thread);
-    // automatically delete thread and task object when work is done:
-    QObject::connect(sensor, SIGNAL(threadTerminating()), sensor, SLOT(deleteLater()));
-    QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    qDebug() << "Sensor " << name << " added (ready)";
-
-    thread->start();
-    return sensor;
 }
 
 void Serializer::SaveConfig(QTableWidget *table, QString path)
@@ -90,19 +66,16 @@ void Serializer::SaveConfig(QTableWidget *table, QString path)
         xmlWriter.setAutoFormatting(true);
 
         xmlWriter.writeStartDocument();
-        xmlWriter.writeStartElement("Configuration");
+        xmlWriter.writeStartElement(rootName);
 
         for (int row = 0; row < table->rowCount(); row++)
         {
-            xmlWriter.writeStartElement("Device");
-            xmlWriter.writeAttribute("count", QString::number(row));
+            xmlWriter.writeStartElement(childrenName);
+            xmlWriter.writeAttribute(childrenAttributeName, QString::number(row));
             for (int col = 0; col < table->columnCount(); col++)
             {
                 QString header = table->horizontalHeaderItem(col)->text();
-                if (header != "Port" && header != "Status")
-                {
-                    xmlWriter.writeTextElement(table->horizontalHeaderItem(col)->text(), table->item(row,col)->text());
-                }
+                xmlWriter.writeTextElement(table->horizontalHeaderItem(col)->text(), table->item(row,col)->text());
             }
             xmlWriter.writeEndElement();
         }
@@ -115,12 +88,10 @@ void Serializer::SaveConfig(QTableWidget *table, QString path)
     }
 }
 
-QTableView* Serializer::LoadConfig(QString path)
+QList<Sensor*>* Serializer::LoadConfig(QString path)
 {
     QFile file(path);
-    QTableView *configuration = new QTableView();
-    QStandardItemModel *model = new QStandardItemModel();
-    model -> setColumnCount(3);
+    QList<Sensor*>* configuration = new QList<Sensor*>();
 
     if (!file.open(QIODevice::ReadOnly))
     {
@@ -129,85 +100,117 @@ QTableView* Serializer::LoadConfig(QString path)
     else
     {
         QXmlStreamReader reader(&file);
-        ParseConfig(&reader, model);
-        model->setHorizontalHeaderLabels({ "Identifier", "Name", "Baudrate" });
-
-        configuration->setModel(model);
-        //configuration->show();
+        ParseConfig(&reader, configuration);
+        emit setNewConfig(configuration);
     }
-    emit setNewConfig(configuration);
     return configuration;
 }
 
-void Serializer::ParseConfig(QXmlStreamReader* reader, QStandardItemModel* model)
+void Serializer::ParseConfig(QXmlStreamReader* reader, QList<Sensor*>* configuration)
 {
     qDebug() << "\nParsing configuration...";
-    if (reader->readNextStartElement())
+    int deviceCount = -1;
+    while (!reader->atEnd() && !reader->hasError())
     {
-        if (reader->name() == "Configuration")
+        QXmlStreamReader::TokenType token = reader->readNext();
+        if (token == QXmlStreamReader::StartDocument)
         {
-            int row = 0;
-            while(reader->readNextStartElement())
-            {
-                AddDeviceConfig(reader, model, row);
-            }
+            continue;
+        }
+        if (token == QXmlStreamReader::StartElement)
+        {
+            if (reader->name() == rootName)
+                continue;
+            if (reader->name() == childrenName)
+                AddDeviceConfig(reader, configuration, &deviceCount);
         }
     }
-    qDebug() << "Parsing done.";
+    qDebug() << "Parsing completed.";
 }
 
-void Serializer::AddDeviceConfig(QXmlStreamReader* reader, QStandardItemModel* model, int &row)
+void Serializer::AddDeviceConfig(QXmlStreamReader* reader, QList<Sensor*>* configuration, int *deviceCount)
 {
-    if(reader->name().contains("Device"))
+    if (reader->tokenType() != QXmlStreamReader::StartElement && reader->name() == childrenName)
+        return;
+    QXmlStreamAttributes attributes = reader->attributes();
+    if (attributes.hasAttribute(childrenAttributeName))
     {
-        QString count = reader->attributes().value("count").toString();
-        model->insertRow(++row);
-        while(reader->readNextStartElement())
+        int num = attributes.value(childrenAttributeName).toInt();
+        if (*deviceCount+1 == num)
         {
-            if (!AddElement(reader, model, row))
+            *deviceCount = num;
+            reader->readNext();
+            if (!AddDevice(reader, configuration))
             {
-                model->removeRow(--row);
-                qDebug() << "Skipped device configuration at position" << count;
+                qDebug() << "Skip device at position" << num << " - error parsing fields.";
             }
-        }
-    }
-}
-
-bool Serializer::AddElement(QXmlStreamReader* reader, QStandardItemModel* model, int &row)
-{
-    if(reader->name() == "Identifier")
-    {
-        QString s = reader->readElementText();
-        if (model->findItems(s,Qt::MatchExactly).count() == 0)
-        {
-            model->setItem(row-1, 0, new QStandardItem(s));
         }
         else
         {
-           reader->skipCurrentElement();
-           return false;
+            qDebug() << "Skip device at position" << num << " - bad index.";
+            do
+            {
+                reader->readNext();
+            } while (reader->tokenType() != QXmlStreamReader::StartElement && reader->name() != childrenName && !reader->atEnd());
         }
     }
-    else if(reader->name() == "Name")
+}
+
+bool Serializer::AddDevice(QXmlStreamReader* reader, QList<Sensor*>* configuration)
+{
+    QString identifier = "";
+    QString name = "";
+    long baudrate = -1;
+
+    while (reader->tokenType() != QXmlStreamReader::EndElement && reader->name() != childrenName)
     {
-        QString s = reader->readElementText();
-        model->setItem(row-1, 1, new QStandardItem(s));
-    }
-    else if(reader->name() == "Baudrate")
-    {
-        long baud = reader->readElementText().toLong();
-        if (baud != 0)
+        if (reader->tokenType() == QXmlStreamReader::StartElement)
         {
-            model->setItem(row-1, 2, new QStandardItem(QString::number(baud)));
+            if(reader->name() == "Identifier")
+            {
+                QString str = reader->readElementText();
+                bool duplicate = false;
+                foreach(Sensor *sensor, *configuration)
+                {
+                    if (sensor->Identifier() == str)
+                    {
+                        duplicate = true;
+                        break;
+                    }
+                }
+                if (!duplicate)
+                    identifier = str;
+                else
+                    return false;
+            }
+            else if(reader->name() == "Name")
+            {
+                name = reader->readElementText();
+                if (name.isNull() || name.isEmpty())
+                    name = "NullName";
+            }
+            else if(reader->name() == "Baudrate")
+            {
+                long num = reader->readElementText().toLong();
+                if (num > 0)
+                    baudrate = num;
+            }
+            else if(reader->name() == "Port")
+            {
+                reader->readElementText();
+            }
+            else if(reader->name() == "Status")
+            {
+                reader->readElementText();
+            }
         }
-        else
-        {
-            return false;
-        }
+        reader->readNext();
     }
-    else
+    if (!identifier.isEmpty() && baudrate > 0)
     {
-        reader->skipCurrentElement();
+        Sensor* s = new Sensor("", identifier, baudrate, name);
+        configuration->append(s);
+        return true;
     }
-    return true;
+    return false;
 }

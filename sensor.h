@@ -20,12 +20,12 @@ class Sensor : public QObject
 public:
     enum SensorStatus
     {
-        PARSE_ERROR,
-        PORT_OPEN_ERR,
-        TIMEOUT,
         READY,
         BUSY,
-        TERMINATED
+        TERMINATED,
+        PARSE_ERR,
+        PORT_OPEN_ERR,
+        TIMEOUT_ERR,
     };    
     Q_ENUM(SensorStatus)
 

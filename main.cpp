@@ -13,6 +13,9 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     Serializer serializer;
     MainWindow mainwindow(nullptr, &serializer);
+
+    QObject::connect(&serializer, SIGNAL(setNewConfig(QList<Sensor*>*)), &mainwindow, SLOT(SetTableCurrentPorts(QList<Sensor*>*)));
+
     mainwindow.show();
 
     QList<QSerialPortInfo> availablePorts = serializer.GetAvailablePorts();
@@ -36,7 +39,7 @@ int main(int argc, char *argv[])
 
     //qDebug() << sensors[0]->Name() << sensors[0]->Id();
     //qDebug() << QVariant::fromValue(sensors[0]->open()).toString();
-    mainwindow.SetTableCurrentPorts(ports);
+
     return app.exec();
 }
 
