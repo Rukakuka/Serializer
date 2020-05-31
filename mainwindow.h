@@ -37,6 +37,7 @@ private:
     Ui::Mainwindow *ui;
     Serializer *serializer;
     QList<QLineEdit*> *lineEditList;
+    QList<Sensor*> *ports;
 
 public slots:
     void SetDataLabels(qint16 *databuf);
@@ -47,7 +48,6 @@ public slots:
 private slots:
     void on_btnStart_clicked();
     void on_btnStop_clicked();
-    void on_btnTerminate_clicked();
     void on_btnLoadConfig_clicked();
     void on_btnSaveConfig_clicked();
     void on_btnAddDevice_clicked();

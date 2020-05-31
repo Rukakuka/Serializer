@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent, Serializer *serializer) : QMainWindow(pa
     this->serializer = serializer;
 
     this->lineEditList = new QList<QLineEdit*>;
+    this->ports = new QList<Sensor*>;
 
     lineEditList->append(ui->lineEditAx);
     lineEditList->append(ui->lineEditAy),
@@ -36,6 +37,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
 {
+    ui->comboSelectPort->clear();
+    ui->tableCurrentConfig->clear();
+
     QStringList horizontalHeaderLabels = {"Port", "Identifier", "Name", "Baudrate", "Status"};
     int columns = horizontalHeaderLabels.size();
 
@@ -78,7 +82,7 @@ void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
     ui->tabWidget->setCurrentIndex(0);    
 }
 
-void MainWindow::SetNewSensorStatus(Sensor::SensorStatus s)
+void MainWindow::SetNewSensorStatus(Sensor::SensorStatus status)
 {
     Sensor* sensor = qobject_cast<Sensor*>(sender());
 
@@ -114,7 +118,7 @@ void MainWindow::SetNewSensorStatus(Sensor::SensorStatus s)
         {
             if (ui->tableCurrentConfig->item(row, identifierColumn)->text() == sensor->Identifier())
             {
-                ui->tableCurrentConfig->item(row, statusColumn)->setText(QString(QVariant::fromValue(sensor->CurrentStatus()).toString()));
+                ui->tableCurrentConfig->item(row, statusColumn)->setText(QString(QVariant::fromValue(status).toString()));
             }
         }
     }
@@ -145,21 +149,36 @@ void MainWindow::SetServiceData(Sensor::ServiceData *sd)
 
 void MainWindow::on_btnStart_clicked()
 {
+    ui->btnLoadConfig->setEnabled(false);
+
+    QList<QSerialPortInfo> availablePorts = serializer->GetAvailablePorts();
+    //QList<Sensor*>* ports = new QList<Sensor*>();
+
+    ports = serializer->Begin(availablePorts);
+
+    for (int i = 0; i < ports->size(); i++) // do sensor connections
+    {
+            QObject::connect(this, SIGNAL(stopSerial()), ports->at(i), SLOT(terminateThread()));
+            QObject::connect(this, SIGNAL(beginSerial()), ports->at(i), SLOT(begin()));
+            QObject::connect(this, SIGNAL(terminateSerial()), ports->at(i), SLOT(terminateThread()));
+
+            QObject::connect(ports->at(i), SIGNAL(sendSensorData(qint16*)), this, SLOT(SetDataLabels(qint16*)));
+            QObject::connect(ports->at(i), SIGNAL(sendSensorServiceData(Sensor::ServiceData*)), this, SLOT(SetServiceData(Sensor::ServiceData*)));
+            QObject::connect(ports->at(i), SIGNAL(statusChanged(Sensor::SensorStatus)), this, SLOT(SetNewSensorStatus(Sensor::SensorStatus)));
+    }
+    qDebug() << "Setup done in thread " << QThread::currentThreadId();
     emit beginSerial();
 }
 
 void MainWindow::on_btnStop_clicked()
 {
+    ui->btnLoadConfig->setEnabled(true);
     emit stopSerial();
-}
-
-void MainWindow::on_btnTerminate_clicked()
-{
-    emit terminateSerial();
 }
 
 void MainWindow::on_btnLoadConfig_clicked()
 {
+    emit terminateSerial();
     QString path = QFileDialog::getOpenFileName(this, "Open Configuration", "", "XML files (*.xml)");
     emit loadConfig(path);
 }
