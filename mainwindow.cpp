@@ -137,8 +137,8 @@ void MainWindow::SetServiceData(Sensor::ServiceData *sd)
     Sensor* sens = qobject_cast<Sensor*>(sender());
     if (sens->Name() == ui->comboSelectPort->currentText())
     {
-        ui->lineEditAverageLocalTime->setText(QString::number(((double)(sd->LocalTimeElapsed))/1e9));
-        ui->lineEditAverageRemoteTime->setText(QString::number(((double)(sd->RemoteTimeElapsed))/1e6));
+        ui->lineEditAverageLocalTime->setText(QString::number(1e12/((double)(sd->LocalTimeElapsed))));
+        ui->lineEditAverageRemoteTime->setText(QString::number(1e9/((double)(sd->RemoteTimeElapsed))));
         ui->lineEditMissedPackets->setText(QString::number(sd->DeclinedPackets));
     }
 }
