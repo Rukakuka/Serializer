@@ -63,6 +63,14 @@ private:
     QTimer* timeoutTimer;
     SensorStatus currentStatus;
 
+    /* readyRead slot vars */
+    quint16 cnt = 0;
+    QByteArray rxbuf;
+    qint16 databuf [9];
+    qint64 declinedPackets = 0;
+    quint64 timestamp = 0;
+    quint64 prev_timestamp = 0;
+
     void open();
     void setCurrentStatus(SensorStatus st);
 
@@ -80,7 +88,7 @@ signals:
     void threadTerminating();
     void sendSensorData(qint16 *databuf);
     void sendSensorServiceData(Sensor::ServiceData*);
-    void statusChanged(SensorStatus st);
+    void statusChanged(Sensor::SensorStatus st);
 };
 
 Q_DECLARE_METATYPE(Sensor::SensorStatus)

@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
 
             QObject::connect(ports->at(i), SIGNAL(sendSensorData(qint16*)), &mainwindow, SLOT(SetDataLabels(qint16*)));
             QObject::connect(ports->at(i), SIGNAL(sendSensorServiceData(Sensor::ServiceData*)), &mainwindow, SLOT(SetServiceData(Sensor::ServiceData*)));
+            QObject::connect(ports->at(i), SIGNAL(statusChanged(Sensor::SensorStatus)), &mainwindow, SLOT(SetNewSensorStatus(Sensor::SensorStatus)));
         }
     }
     qDebug() << "Setup done in thread " << QThread::currentThreadId();

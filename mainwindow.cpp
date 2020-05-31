@@ -78,6 +78,47 @@ void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
     ui->tabWidget->setCurrentIndex(0);    
 }
 
+void MainWindow::SetNewSensorStatus(Sensor::SensorStatus s)
+{
+    Sensor* sensor = qobject_cast<Sensor*>(sender());
+
+    static int identifierColumn = -1;
+    if (identifierColumn == -1)
+    {
+        for (int col= 0; col < ui->tableCurrentConfig->columnCount(); col++)
+        {
+            if (ui->tableCurrentConfig->horizontalHeaderItem(col)->text() == "Identifier")
+            {
+                identifierColumn = col;
+                break;
+            }
+        }
+    }
+
+    static int statusColumn = -1;
+    if (statusColumn == -1)
+    {
+        for (int col= 0; col < ui->tableCurrentConfig->columnCount(); col++)
+        {
+            if (ui->tableCurrentConfig->horizontalHeaderItem(col)->text() == "Status")
+            {
+                statusColumn = col;
+                break;
+            }
+        }
+    }
+
+    if (statusColumn != -1 && identifierColumn != -1)
+    {
+        for (int row = 0; row < ui->tableCurrentConfig->rowCount(); row++)
+        {
+            if (ui->tableCurrentConfig->item(row, identifierColumn)->text() == sensor->Identifier())
+            {
+                ui->tableCurrentConfig->item(row, statusColumn)->setText(QString(QVariant::fromValue(sensor->CurrentStatus()).toString()));
+            }
+        }
+    }
+}
 
 void MainWindow::SetDataLabels(qint16 *databuf)
 {

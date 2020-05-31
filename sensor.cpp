@@ -27,7 +27,6 @@ Sensor::~Sensor()
 
 void Sensor::begin()
 {
-    qDebug() << "try begin";
     if (currentStatus == Sensor::READY)
     {
         port->setBaudRate(baudrate);
@@ -38,7 +37,6 @@ void Sensor::begin()
 
         QObject::connect(port,SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::UniqueConnection);
 
-        qDebug() << port->portName();
         if (port->open(QIODevice::ReadOnly))
         {
             receiveTimer = new QElapsedTimer();
@@ -63,7 +61,6 @@ void Sensor::begin()
     {        
         qDebug() << "Port" << this->name << "cannot be initialized. Port status is" << currentStatus;
     }
-    qDebug() << "try beginend";
 }
 
 void Sensor::close()
@@ -86,13 +83,7 @@ void Sensor::close()
 
 void Sensor::readyRead()
 {
-    static quint16 cnt = 0;
-    static QByteArray rxbuf;
-    static qint16 databuf [9];
-    static qint64 declinedPackets = 0;
-    static quint64 timestamp = 0;
-    static quint64 prev_timestamp = 0;
-    static int dataSize = messageSize-terminator.length();
+    int dataSize = messageSize-terminator.length();
 
     if (timeoutTimer->isActive())
     {
@@ -124,16 +115,20 @@ void Sensor::readyRead()
                 }
                 else
                 {
+                    //qDebug() << "11" << this->Name() << QThread::currentThreadId();
                     //QDebug deb = qDebug();
                     for (int i = 0; i < 18; i += 2)
                     {
                         databuf[i/2] = (qint16)((unsigned char)(pack[i+1]) << 8 | (unsigned char)(pack[i]));
                         //deb << databuf[i];
                     }
+                    //qDebug() << "12" << this->Name() << QThread::currentThreadId();
                     timestamp = quint64((unsigned char)(pack[21]) << 24 | (unsigned char)(pack[20]) << 16 | (unsigned char)(pack[19]) << 8 | (unsigned char)(pack[18]));
+                    //qDebug() << "13" << this->Name() << QThread::currentThreadId();
                 }
                 rxbuf = rxbuf.mid(end+2);
                 emit sendSensorData(databuf);
+                //qDebug() << "3" << this->Name() << QThread::currentThreadId();
             }
         }
         if (rxbuf.size() > messageSize)

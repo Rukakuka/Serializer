@@ -8,6 +8,6 @@
     <Device count="1">
         <Identifier>55737303030351202252</Identifier>
         <Name>LSM303</Name>
-        <Baudrate>1500000</Baudrate>
+        <Baudrate>2500000</Baudrate>
     </Device>
 </Configuration>

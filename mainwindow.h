@@ -41,7 +41,8 @@ private:
 public slots:
     void SetDataLabels(qint16 *databuf);
     void SetServiceData(Sensor::ServiceData *sd);
-    void SetTableCurrentPorts(QList<Sensor*>* sensors);
+    void SetTableCurrentPorts(QList<Sensor*>* sensors);    
+    void SetNewSensorStatus(Sensor::SensorStatus s);
 
 private slots:
     void on_btnStart_clicked();
