@@ -63,9 +63,20 @@ void Sensor::begin()
     }
 }
 
-void Sensor::close()
+void Sensor::terminateThread()
 {
-    port->close();
+    setCurrentStatus(Sensor::TERMINATED);
+    qDebug() << "\nThread" << QThread::currentThreadId() << "terminating. Port " << this->name << "closed.";
+    this->close();
+    emit threadTerminating();
+}
+
+void Sensor::close()
+{    
+    QObject::disconnect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()));
+    QObject::disconnect(port,SIGNAL(readyRead()), this, SLOT(readyRead()));
+
+    timeoutTimer->stop();
 
     if (timeoutTimer != NULL)
     {
@@ -75,10 +86,7 @@ void Sensor::close()
         delete receiveTimer;
         receiveTimer = NULL;
     }
-    if (currentStatus == Sensor::BUSY)
-    {
-        setCurrentStatus(Sensor::READY);
-    }
+    port->close();
 }
 
 void Sensor::readyRead()
@@ -159,14 +167,6 @@ void Sensor::readTimeout()
     setCurrentStatus(Sensor::TIMEOUT_ERR);
     qDebug() << "\nSerial read timeout. Port " << this->name << "closed.";
     this->close();
-}
-
-void Sensor::terminateThread()
-{
-    setCurrentStatus(Sensor::TERMINATED);
-    qDebug() << "\nThread" << QThread::currentThreadId() << "terminating. Port " << this->name << "closed.";
-    this->close();
-    emit threadTerminating();
 }
 
 void Sensor::printFromAnotherThread()

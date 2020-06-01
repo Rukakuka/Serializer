@@ -172,6 +172,12 @@ void MainWindow::on_btnStart_clicked()
 
 void MainWindow::on_btnStop_clicked()
 {
+    for (int i = 0; i < ports->size(); i++) // do sensor connections
+    {
+            QObject::disconnect(ports->at(i), SIGNAL(sendSensorData(qint16*)), this, SLOT(SetDataLabels(qint16*)));
+            QObject::disconnect(ports->at(i), SIGNAL(sendSensorServiceData(Sensor::ServiceData*)), this, SLOT(SetServiceData(Sensor::ServiceData*)));
+            QObject::disconnect(ports->at(i), SIGNAL(statusChanged(Sensor::SensorStatus)), this, SLOT(SetNewSensorStatus(Sensor::SensorStatus)));
+    }
     ui->btnLoadConfig->setEnabled(true);
     emit stopSerial();
 }
