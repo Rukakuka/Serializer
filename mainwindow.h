@@ -56,7 +56,6 @@ private slots:
 signals:
     void stopSerial();
     void beginSerial();
-    void terminateSerial();
     void saveConfig(QTableWidget*, QString);
     void loadConfig(QString);
 };

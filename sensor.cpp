@@ -4,6 +4,8 @@ Sensor::Sensor(QString portname, QString identifier, long baudrate, QString name
 {
     qRegisterMetaType<Sensor::SensorStatus>();
     qRegisterMetaType<Sensor::ServiceData>();
+    qRegisterMetaType<qint16*>();
+
     this->portname = portname;
     this->identifier = identifier;
     this->baudrate = baudrate;
@@ -18,11 +20,6 @@ Sensor::Sensor(QString portname, QString identifier, long baudrate, QString name
     {
         setCurrentStatus(Sensor::PORT_OPEN_ERR);
     }
-}
-
-Sensor::~Sensor()
-{
-
 }
 
 void Sensor::begin()
@@ -66,15 +63,17 @@ void Sensor::begin()
 void Sensor::terminateThread()
 {
     setCurrentStatus(Sensor::TERMINATED);
-    qDebug() << "\nThread" << QThread::currentThreadId() << "terminating. Port " << this->name << "closed.";
     this->close();
+    qDebug() << "\nThread" << QThread::currentThreadId() << "terminating. Port " << this->name << "closed.";
     emit threadTerminating();
 }
 
 void Sensor::close()
 {    
-    QObject::disconnect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()));
+
     QObject::disconnect(port,SIGNAL(readyRead()), this, SLOT(readyRead()));
+    port->clear(QSerialPort::AllDirections);
+    QObject::disconnect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()));
 
     timeoutTimer->stop();
 
@@ -86,7 +85,6 @@ void Sensor::close()
         delete receiveTimer;
         receiveTimer = NULL;
     }
-    port->close();
 }
 
 void Sensor::readyRead()
@@ -111,7 +109,6 @@ void Sensor::readyRead()
                 rxbuf = rxbuf.mid(end+2);
                 end = rxbuf.indexOf(terminator);
                 declinedPackets++;
-                //qDebug() << "Removed packet of data in " << this->name;
             }
             else
             {
@@ -123,20 +120,16 @@ void Sensor::readyRead()
                 }
                 else
                 {
-                    //qDebug() << "11" << this->Name() << QThread::currentThreadId();
                     //QDebug deb = qDebug();
                     for (int i = 0; i < 18; i += 2)
                     {
                         databuf[i/2] = (qint16)((unsigned char)(pack[i+1]) << 8 | (unsigned char)(pack[i]));
                         //deb << databuf[i];
                     }
-                    //qDebug() << "12" << this->Name() << QThread::currentThreadId();
                     timestamp = quint64((unsigned char)(pack[21]) << 24 | (unsigned char)(pack[20]) << 16 | (unsigned char)(pack[19]) << 8 | (unsigned char)(pack[18]));
-                    //qDebug() << "13" << this->Name() << QThread::currentThreadId();
                 }
                 rxbuf = rxbuf.mid(end+2);
                 emit sendSensorData(databuf);
-                //qDebug() << "3" << this->Name() << QThread::currentThreadId();
             }
         }
         if (rxbuf.size() > messageSize)

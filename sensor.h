@@ -40,8 +40,6 @@ public:
 
     Sensor(QString portname, QString identifier, long baudrate, QString name);
 
-    ~Sensor();
-
     QString Identifier() { return identifier; }
     QString Portname() { return portname; }
     QString Name() { return name; }
@@ -93,5 +91,6 @@ signals:
 
 Q_DECLARE_METATYPE(Sensor::SensorStatus)
 Q_DECLARE_METATYPE(Sensor::ServiceData)
+Q_DECLARE_METATYPE(qint16*)
 
 #endif // SENSOR_H
