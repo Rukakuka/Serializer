@@ -127,8 +127,11 @@ void MainWindow::SetNewSensorStatus(Sensor::SensorStatus status)
 
 void MainWindow::SetDataLabels(qint16 *databuf)
 {
+
     Sensor* sensor = qobject_cast<Sensor*>(sender());
     if (sensor->CurrentStatus()== Sensor::TERMINATED)
+        return;
+    if (databuf == nullptr)
         return;
     if (sensor->Name() == ui->comboSelectPort->currentText())
     {

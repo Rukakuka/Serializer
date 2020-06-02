@@ -64,13 +64,12 @@ void Sensor::terminateThread()
 {
     setCurrentStatus(Sensor::TERMINATED);
     this->close();
-    qDebug() << "\nThread" << QThread::currentThreadId() << "terminating. Port " << this->name << "closed.";
+    qDebug() << "\nThread" << QThread::currentThreadId() << "terminating. Port" << this->name << "closed.";
     emit threadTerminating();
 }
 
 void Sensor::close()
 {    
-
     QObject::disconnect(port,SIGNAL(readyRead()), this, SLOT(readyRead()));
     port->clear(QSerialPort::AllDirections);
     QObject::disconnect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()));
