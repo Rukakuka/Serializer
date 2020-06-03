@@ -33,9 +33,6 @@ class Serializer : public QObject
 public:
     Serializer();
     ~Serializer() {};
-
-    QTableView *configuration;
-
     QList<QSerialPortInfo> GetAvailablePorts();
 
 
@@ -43,9 +40,9 @@ public slots:
 
     QList<Sensor*>* Begin(QList<QSerialPortInfo> portlist);
     void Stop();
-
-    void SaveConfig(QTableWidget* table, QString path);
-    QList<Sensor*>* LoadConfig(QString path);
+    void ChangeConfiguration(QList<Sensor *> newConfig);
+    void SaveConfig(QString path);
+    QList<Sensor *> LoadConfig(QString path);
 
 private:
     Sensor* AddSensor(QSerialPortInfo port, QString name, long baudrate);
@@ -55,16 +52,17 @@ private:
     void AddDeviceConfig(QXmlStreamReader *reader, QList<Sensor*>* configuration, int *deviceCount);
     void ParseConfig(QXmlStreamReader *reader, QList<Sensor*>* configuration);
 
-    const QString defaultConfigurationPath = "E:/QtProjects/Serializer/configuration.xml";
+    QList<Sensor*> configuration;
 
     /* *** XML config file parameters *** */
+    const QString defaultConfigurationPath = "E:/QtProjects/Serializer/configuration.xml";
     const QString rootName = "Configuration";
     const QString childrenName = "Device";
     const QString childrenAttributeName = "count";
     const QStringList chilrenFields = {"Port", "Identifier", "Name", "Baudrate", "Status"};
 
-signals:
-    void setNewConfig(QList<Sensor*>*);
+signals:    
+    void configurationChanged(QList<Sensor *> newConfig);
 };
 
 #endif

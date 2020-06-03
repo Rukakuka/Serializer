@@ -36,7 +36,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
+void MainWindow::SetTableCurrentPorts(QList<Sensor*> ports)
 {
     ui->comboSelectPort->clear();
     ui->tableCurrentConfig->clear();
@@ -44,12 +44,12 @@ void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
     QStringList horizontalHeaderLabels = {"Port", "Identifier", "Name", "Baudrate", "Status"};
     int columns = horizontalHeaderLabels.size();
 
-    ui->tableCurrentConfig->setRowCount(ports->size());
+    ui->tableCurrentConfig->setRowCount(ports.size());
     ui->tableCurrentConfig->setColumnCount(columns);
     ui->tableCurrentConfig->setShowGrid(true);
     ui->tableCurrentConfig->setHorizontalHeaderLabels(horizontalHeaderLabels);
 
-    QListIterator<Sensor*> iter(*ports);
+    QListIterator<Sensor*> iter(ports);
 
     int row = 0;
     while (iter.hasNext())
@@ -80,7 +80,7 @@ void MainWindow::SetTableCurrentPorts(QList<Sensor*>* ports)
 
     ui->tableCurrentConfig->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::Interactive);
     ui->tableCurrentConfig->resizeColumnsToContents();
-    ui->tabWidget->setCurrentIndex(0);    
+    ui->tabWidget->setCurrentIndex(0);
 }
 
 void MainWindow::SetNewSensorStatus(Sensor::SensorStatus status)
@@ -129,10 +129,16 @@ void MainWindow::SetDataLabels(qint16 *databuf)
 {
 
     Sensor* sensor = qobject_cast<Sensor*>(sender());
+
+    if (sensor == nullptr )
+        return;
+
     if (sensor->CurrentStatus()== Sensor::TERMINATED)
         return;
+
     if (databuf == nullptr)
         return;
+
     if (sensor->Name() == ui->comboSelectPort->currentText())
     {
         for (int i = 0; i < lineEditList->size(); i++)
@@ -140,12 +146,17 @@ void MainWindow::SetDataLabels(qint16 *databuf)
             lineEditList->at(i)->setText(QString::number(databuf[i]));
         }
     }
+
 }
 
 void MainWindow::SetServiceData(Sensor::ServiceData *sd)
 {
     Sensor* sensor = qobject_cast<Sensor*>(sender());
+    if (sensor == nullptr )
+        return;
     if (sensor->CurrentStatus()== Sensor::TERMINATED)
+        return;
+    if (sd == nullptr)
         return;
     if (sensor->Name() == ui->comboSelectPort->currentText())
     {
@@ -158,11 +169,7 @@ void MainWindow::SetServiceData(Sensor::ServiceData *sd)
 void MainWindow::on_btnStart_clicked()
 {
     ui->btnLoadConfig->setEnabled(false);
-
-    QList<QSerialPortInfo> availablePorts = serializer->GetAvailablePorts();
-    //QList<Sensor*>* ports = new QList<Sensor*>();
-
-    ports = serializer->Begin(availablePorts);
+    ports = serializer->Begin(serializer->GetAvailablePorts());
 
     for (int i = 0; i < ports->size(); i++) // do sensor connections
     {
@@ -181,13 +188,21 @@ void MainWindow::on_btnStop_clicked()
 {
     for (int i = 0; i < ports->size(); i++) // do sensor connections
     {
-            QObject::disconnect(ports->at(i), SIGNAL(sendSensorData(qint16*)), this, SLOT(SetDataLabels(qint16*)));
-            QObject::disconnect(ports->at(i), SIGNAL(sendSensorServiceData(Sensor::ServiceData*)), this, SLOT(SetServiceData(Sensor::ServiceData*)));
-            QObject::disconnect(ports->at(i), SIGNAL(statusChanged(Sensor::SensorStatus)), this, SLOT(SetNewSensorStatus(Sensor::SensorStatus)));
+        QObject::disconnect(ports->at(i), SIGNAL(sendSensorData(qint16*)), this, SLOT(SetDataLabels(qint16*)));
+        QObject::disconnect(ports->at(i), SIGNAL(sendSensorServiceData(Sensor::ServiceData*)), this, SLOT(SetServiceData(Sensor::ServiceData*)));
+        QObject::disconnect(ports->at(i), SIGNAL(statusChanged(Sensor::SensorStatus)), this, SLOT(SetNewSensorStatus(Sensor::SensorStatus)));
     }
 
     ui->btnLoadConfig->setEnabled(true);
     emit stopSerial();
+
+    for (int i = 0; i < ports->size(); i++)
+    {
+        QObject::disconnect(this, SIGNAL(stopSerial()), ports->at(i), SLOT(terminateThread()));
+        QObject::disconnect(this, SIGNAL(beginSerial()), ports->at(i), SLOT(begin()));
+    }
+    delete ports;
+    ports = nullptr;
 }
 
 void MainWindow::on_btnLoadConfig_clicked()
@@ -200,7 +215,7 @@ void MainWindow::on_btnLoadConfig_clicked()
 void MainWindow::on_btnSaveConfig_clicked()
 {
     QString path = QFileDialog::getSaveFileName(nullptr, "configuration", ".", "XML files (*.xml)" );
-    emit saveConfig(ui->tableCurrentConfig, path);
+    emit saveConfig(path);
 }
 
 void MainWindow::on_btnAddDevice_clicked()

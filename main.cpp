@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     Serializer serializer;
     MainWindow mainwindow(nullptr, &serializer);
 
-    QObject::connect(&serializer, SIGNAL(setNewConfig(QList<Sensor*>*)), &mainwindow, SLOT(SetTableCurrentPorts(QList<Sensor*>*)));
+    QObject::connect(&serializer, SIGNAL(configurationChanged(QList<Sensor*>)), &mainwindow, SLOT(SetTableCurrentPorts(QList<Sensor*>)));
 
     mainwindow.show();
 

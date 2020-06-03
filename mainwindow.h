@@ -42,7 +42,7 @@ private:
 public slots:
     void SetDataLabels(qint16 *databuf);
     void SetServiceData(Sensor::ServiceData *sd);
-    void SetTableCurrentPorts(QList<Sensor*>* sensors);    
+    void SetTableCurrentPorts(QList<Sensor *> sensors);
     void SetNewSensorStatus(Sensor::SensorStatus s);
 
 private slots:
@@ -56,7 +56,7 @@ private slots:
 signals:
     void stopSerial();
     void beginSerial();
-    void saveConfig(QTableWidget*, QString);
+    void saveConfig(QString);
     void loadConfig(QString);
 };
 #endif // SERIALIZER_H

@@ -3,7 +3,7 @@
 
 Serializer::Serializer()
 {
-
+    QObject::connect(this, &Serializer::configurationChanged, this, &Serializer::ChangeConfiguration);
 }
 
 QList<QSerialPortInfo> Serializer::GetAvailablePorts()
@@ -18,23 +18,40 @@ QList<QSerialPortInfo> Serializer::GetAvailablePorts()
     return ports;
 }
 
+void Serializer::ChangeConfiguration(QList<Sensor*> newConfig)
+{
+    if (newConfig.isEmpty() || newConfig.count() == 0)
+        return;
+    foreach(Sensor* sens, newConfig)
+    {
+        configuration.clear();
+        if(sens->Baudrate() > 0 && sens->Identifier().size() == 20)
+        {
+            this->configuration.append(sens);
+        }
+    }
+}
+
 QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo> portlist)
 {    
-    QList<Sensor*>* configuration = LoadConfig(defaultConfigurationPath);
+    if (configuration.isEmpty())
+    {
+        LoadConfig(defaultConfigurationPath);
+    }
 
     QList<Sensor*>* sensors = new QList<Sensor*>();
 
-    for (int i = 0; i < configuration->count(); i++)
+    for (int i = 0; i < configuration.count(); i++)
     {
         for (int j = 0; j < portlist.count(); j++)
         {
-            if (portlist[j].serialNumber() == configuration->at(i)->Identifier())
+            if (portlist[j].serialNumber() == configuration.at(i)->Identifier())
             {
 
                 Sensor *sensor = new Sensor(portlist[j].portName(),
-                                            configuration->at(i)->Identifier(),
-                                            configuration->at(i)->Baudrate(),
-                                            configuration->at(i)->Name());
+                                            configuration.at(i)->Identifier(),
+                                            configuration.at(i)->Baudrate(),
+                                            configuration.at(i)->Name());
                 QThread *thread = new QThread();
 
                 sensor->moveToThread(thread);
@@ -43,12 +60,10 @@ QList<Sensor*>* Serializer::Begin(QList<QSerialPortInfo> portlist)
                 QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
                 qDebug() << "Sensor " << sensor->Name() << " added";
                 sensors->append(sensor);
-                thread->start();                
+                thread->start();
             }
         }
     }
-    delete configuration;
-    configuration = NULL;
     return sensors;
 }
 
@@ -57,7 +72,7 @@ void Serializer::Stop()
 
 }
 
-void Serializer::SaveConfig(QTableWidget *table, QString path)
+void Serializer::SaveConfig(QString path)
 {
     QFile file(path);
     if (file.open(QIODevice::WriteOnly))
@@ -68,15 +83,13 @@ void Serializer::SaveConfig(QTableWidget *table, QString path)
         xmlWriter.writeStartDocument();
         xmlWriter.writeStartElement(rootName);
 
-        for (int row = 0; row < table->rowCount(); row++)
+        for (int row = 0; row < this->configuration.count(); row++)
         {
             xmlWriter.writeStartElement(childrenName);
             xmlWriter.writeAttribute(childrenAttributeName, QString::number(row));
-            for (int col = 0; col < table->columnCount(); col++)
-            {
-                QString header = table->horizontalHeaderItem(col)->text();
-                xmlWriter.writeTextElement(table->horizontalHeaderItem(col)->text(), table->item(row,col)->text());
-            }
+            xmlWriter.writeTextElement(chilrenFields[1], configuration[row]->Identifier());
+            xmlWriter.writeTextElement(chilrenFields[2], configuration[row]->Name());
+            xmlWriter.writeTextElement(chilrenFields[3], QString::number(configuration[row]->Baudrate()));
             xmlWriter.writeEndElement();
         }
         xmlWriter.writeEndDocument();
@@ -88,10 +101,10 @@ void Serializer::SaveConfig(QTableWidget *table, QString path)
     }
 }
 
-QList<Sensor*>* Serializer::LoadConfig(QString path)
+QList<Sensor*> Serializer::LoadConfig(QString path)
 {
     QFile file(path);
-    QList<Sensor*>* configuration = new QList<Sensor*>();
+    QList<Sensor*> configuration;
 
     if (!file.open(QIODevice::ReadOnly))
     {
@@ -100,8 +113,8 @@ QList<Sensor*>* Serializer::LoadConfig(QString path)
     else
     {
         QXmlStreamReader reader(&file);
-        ParseConfig(&reader, configuration);
-        emit setNewConfig(configuration);
+        ParseConfig(&reader, &configuration);
+        emit configurationChanged(configuration);
     }
     return configuration;
 }
