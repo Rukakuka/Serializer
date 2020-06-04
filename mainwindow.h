@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include "sensor.h"
-#include "serializer.h"
 
 #include <QMainWindow>
 #include <QDebug>
@@ -30,20 +29,19 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr, Serializer *serializer = nullptr);
+    MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 private:
     Ui::Mainwindow *ui;
-    Serializer *serializer;
     QList<QLineEdit*> *lineEditList;
     QList<Sensor*> *ports;
 
 public slots:
-    void SetDataLabels(qint16 *databuf);
-    void SetServiceData(Sensor::ServiceData *sd);
-    void SetTableCurrentPorts(QList<Sensor *> sensors);
-    void SetNewSensorStatus(Sensor::SensorStatus s);
+    void SetSensorData(qint16 *databuf, QString identifier);
+    void SetServiceData(Sensor::ServiceData data, QString identifier);
+    void SetSensorStatus(Sensor::SensorStatus status, QString identifier);
+    void SetTableCurrentPorts(QList<Sensor*> sensors);
 
 private slots:
     void on_btnStart_clicked();

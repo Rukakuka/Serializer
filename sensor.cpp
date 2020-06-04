@@ -63,12 +63,12 @@ void Sensor::begin()
 void Sensor::terminateThread()
 {
     setCurrentStatus(Sensor::TERMINATED);
-    this->close();
+    this->stop();
     qDebug() << "Thread" << QThread::currentThreadId() << "terminating. Port" << this->name << "closed.";
     emit threadTerminating();
 }
 
-void Sensor::close()
+void Sensor::stop()
 {    
 
     QObject::disconnect(port,SIGNAL(readyRead()), this, SLOT(readyRead()));
@@ -128,7 +128,7 @@ void Sensor::readyRead()
                     timestamp = quint64((unsigned char)(pack[21]) << 24 | (unsigned char)(pack[20]) << 16 | (unsigned char)(pack[19]) << 8 | (unsigned char)(pack[18]));
                 }
                 rxbuf = rxbuf.mid(end+2);
-                emit sendSensorData(databuf);
+                emit sensorDataChanged(databuf);
             }
         }
         if (rxbuf.size() > messageSize)
@@ -144,7 +144,7 @@ void Sensor::readyRead()
             serviceData.RemoteTimeElapsed = timestamp - prev_timestamp;
             serviceData.DeclinedPackets = declinedPackets;
 
-            emit sendSensorServiceData(&serviceData);
+            emit serviceDataChanged(serviceData);
 
             receiveTimer->restart();
             prev_timestamp = timestamp;
@@ -158,13 +158,9 @@ void Sensor::readTimeout()
 {
     setCurrentStatus(Sensor::TIMEOUT_ERR);
     qDebug() << "Serial read timeout. Port " << this->name << "closed.";
-    this->close();
+    this->stop();
 }
 
-void Sensor::printFromAnotherThread()
-{
-    qDebug() << "Hello from thread" << QThread::currentThreadId();
-}
 
 void Sensor::setCurrentStatus(Sensor::SensorStatus st)
 {

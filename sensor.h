@@ -69,24 +69,22 @@ private:
     quint64 timestamp = 0;
     quint64 prev_timestamp = 0;
 
-    void open();
     void setCurrentStatus(SensorStatus st);
 
 public slots:
     void begin();
-    void close();
+    void stop();
     void terminateThread();
 
 private slots:
     void readyRead();
     void readTimeout();
-    void printFromAnotherThread();    
 
 signals:
     void threadTerminating();
-    void sendSensorData(qint16 *databuf);
-    void sendSensorServiceData(Sensor::ServiceData*);
-    void statusChanged(Sensor::SensorStatus st);
+    void sensorDataChanged(qint16* data);
+    void serviceDataChanged(Sensor::ServiceData data);
+    void statusChanged(Sensor::SensorStatus status);
 };
 
 Q_DECLARE_METATYPE(Sensor::SensorStatus)

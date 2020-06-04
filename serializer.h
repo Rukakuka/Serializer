@@ -25,34 +25,34 @@
 #include <QUrl>
 
 #include "sensor.h"
+#include "mainwindow.h"
 
 class Serializer : public QObject
 {
     Q_OBJECT
 
 public:
-    Serializer();
+    Serializer(MainWindow *mainwindow);
     ~Serializer() {};
-    QList<QSerialPortInfo> GetAvailablePorts();
 
 
 public slots:
 
-    QList<Sensor*>* Begin(QList<QSerialPortInfo> portlist);
+    void Begin();
     void Stop();
-    void ChangeConfiguration(QList<Sensor *> newConfig);
     void SaveConfig(QString path);
-    QList<Sensor *> LoadConfig(QString path);
+    void LoadConfig(QString path);
 
 private:
-    Sensor* AddSensor(QSerialPortInfo port, QString name, long baudrate);
-    Sensor* AddSensor(QString identifier, QString name, long baudrate);
+
+    MainWindow *mainwindow;
 
     bool AddDevice(QXmlStreamReader *reader, QList<Sensor*>* configuration);
     void AddDeviceConfig(QXmlStreamReader *reader, QList<Sensor*>* configuration, int *deviceCount);
     void ParseConfig(QXmlStreamReader *reader, QList<Sensor*>* configuration);
 
-    QList<Sensor*> configuration;
+    QList<Sensor*> currentConfiguration;
+    QList<Sensor*> currentWorkingSensors;
 
     /* *** XML config file parameters *** */
     const QString defaultConfigurationPath = "E:/QtProjects/Serializer/configuration.xml";
@@ -61,8 +61,19 @@ private:
     const QString childrenAttributeName = "count";
     const QStringList chilrenFields = {"Port", "Identifier", "Name", "Baudrate", "Status"};
 
+private slots:
+    void setSensorData(qint16* data);
+    void setServiceData(Sensor::ServiceData data);
+    void setSensorStatus(Sensor::SensorStatus status);
+
 signals:    
     void configurationChanged(QList<Sensor *> newConfig);
+    void stopSerial();
+    void beginSerial();
+
+    void sensorDataChanged(qint16* data, QString identifier);
+    void serviceDataChanged(Sensor::ServiceData data, QString identifier);
+    void sensorStatusChanged(Sensor::SensorStatus status, QString identifier);
 };
 
 #endif
