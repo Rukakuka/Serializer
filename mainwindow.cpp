@@ -5,7 +5,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
 {
     qRegisterMetaType<QTableWidget*>();
 
-    ports = new QList<Sensor*>();
     ui->setupUi(this);
 
     this->lineEditList = new QList<QLineEdit*>;
@@ -34,7 +33,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::SetTableCurrentPorts(QList<Sensor*> ports)
+void MainWindow::SetConfigurationTable(QList<Sensor*> ports)
 {
     QStringList horizontalHeaderLabels = {"Port", "Identifier", "Name", "Baudrate", "Status"};
 
