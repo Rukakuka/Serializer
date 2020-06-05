@@ -4,7 +4,7 @@
 Serializer::Serializer(MainWindow *mainwindow)
 {
     this->mainwindow = mainwindow;
-    QObject::connect(this, &Serializer::configurationChanged, mainwindow, &MainWindow::SetTableCurrentPorts);
+    QObject::connect(this, &Serializer::configurationChanged, mainwindow, &MainWindow::SetConfigurationTable);
     QObject::connect(this, &Serializer::sensorDataChanged, mainwindow, &MainWindow::SetSensorData);
     QObject::connect(this, &Serializer::serviceDataChanged, mainwindow, &MainWindow::SetServiceData);
     QObject::connect(this, &Serializer::sensorStatusChanged, mainwindow, &MainWindow::SetSensorStatus);
@@ -50,7 +50,7 @@ void Serializer::Begin()
 
                 qDebug() << "Sensor " << sensor->Name() << " added";
                 currentWorkingSensors.append(sensor);
-                currentConfiguration.replace(devNum, sensor);
+
                 thread->start();
             }
         }

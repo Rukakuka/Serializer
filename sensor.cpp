@@ -34,8 +34,6 @@ void Sensor::begin()
 
         if (port->open(QIODevice::ReadOnly))
         {
-
-
             receiveTimer = new QElapsedTimer();
             timeoutTimer = new QTimer();
 
@@ -77,7 +75,6 @@ void Sensor::stop()
         QObject::disconnect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()));
         port->close();
     }
-
     if (timeoutTimer != NULL)
     {
         timeoutTimer->stop();
