@@ -18,7 +18,7 @@ Sensor::Sensor(QString portname, QString identifier, long baudrate, QString name
     }
     else
     {
-        setCurrentStatus(Sensor::PORT_OPEN_ERR);
+        setCurrentStatus(Sensor::DISCONNECTED);
     }
 }
 
@@ -32,15 +32,16 @@ void Sensor::begin()
         port->setDataBits(QSerialPort::Data8);
         port->setFlowControl(QSerialPort::NoFlowControl);
 
-        QObject::connect(port,SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::UniqueConnection);
-
         if (port->open(QIODevice::ReadOnly))
         {
+
+
             receiveTimer = new QElapsedTimer();
             timeoutTimer = new QTimer();
 
             port->clear(QSerialPort::AllDirections);
 
+            QObject::connect(port,SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::UniqueConnection);
             QObject::connect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()), Qt::UniqueConnection);
 
             receiveTimer->start();
@@ -70,10 +71,12 @@ void Sensor::terminateThread()
 
 void Sensor::stop()
 {    
-
-    QObject::disconnect(port,SIGNAL(readyRead()), this, SLOT(readyRead()));
-    port->clear(QSerialPort::AllDirections);
-    QObject::disconnect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()));
+    if (port->isOpen())
+    {
+        QObject::disconnect(port,SIGNAL(readyRead()), this, SLOT(readyRead()));
+        QObject::disconnect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()));
+        port->close();
+    }
 
     if (timeoutTimer != NULL)
     {
@@ -83,7 +86,6 @@ void Sensor::stop()
         delete receiveTimer;
         receiveTimer = NULL;
     }
-    port->close();
 }
 
 void Sensor::readyRead()

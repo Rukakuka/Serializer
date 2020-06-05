@@ -20,6 +20,7 @@ class Sensor : public QObject
 public:
     enum SensorStatus
     {
+        DISCONNECTED,
         READY,
         BUSY,
         TERMINATED,

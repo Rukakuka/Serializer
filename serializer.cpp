@@ -21,7 +21,7 @@ void Serializer::Begin()
     if (currentConfiguration.isEmpty())
     {
         LoadConfig(defaultConfigurationPath);
-    }   
+    }
 
     currentWorkingSensors.clear();
     for (int devNum = 0; devNum < currentConfiguration.count(); devNum++)
@@ -38,7 +38,7 @@ void Serializer::Begin()
 
                 sensor->moveToThread(thread);
 
-                // thread live & death connections
+                // obj live & death connections
                 QObject::connect(sensor, &Sensor::threadTerminating, sensor, &Sensor::deleteLater);
                 QObject::connect(thread, &QThread::finished, thread, &QThread::deleteLater);
                 QObject::connect(this, &Serializer::stopSerial, sensor, &Sensor::terminateThread);
@@ -52,10 +52,6 @@ void Serializer::Begin()
                 qDebug() << "Sensor " << sensor->Name() << " added";
                 currentWorkingSensors.append(sensor);
                 thread->start();
-
-                /**********************************************************************/
-                // TODO : emit currentWorking SensorStatusChanged and port changed //
-                /**********************************************************************/
             }
         }
     }
@@ -152,9 +148,11 @@ void Serializer::LoadConfig(QString path)
     }
     else
     {
+        currentConfiguration.clear();
         QXmlStreamReader reader(&file);
         ParseConfig(&reader, &currentConfiguration);
         emit configurationChanged(currentConfiguration);
+        file.close();
     }
 }
 
@@ -258,9 +256,20 @@ bool Serializer::AddDevice(QXmlStreamReader* reader, QList<Sensor*>* configurati
         }
         reader->readNext();
     }
+
     if (!identifier.isEmpty() && baudrate > 0)
     {
-        Sensor* s = new Sensor("", identifier, baudrate, name);
+        QString port;
+        QList<QSerialPortInfo> portlist = QSerialPortInfo::availablePorts();
+        for (int portNum = 0; portNum < portlist.count(); portNum++)
+        {
+            if (portlist[portNum].serialNumber() == identifier)
+            {
+                port = portlist[portNum].portName();
+                break;
+            }
+        }
+        Sensor* s = new Sensor(port, identifier, baudrate, name);
         configuration->append(s);
         return true;
     }

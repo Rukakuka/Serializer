@@ -25,6 +25,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
 
     ui->tableCurrentConfig->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
     ui->tableCurrentConfig->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+
+    QObject::connect(this, &MainWindow::sensorStatusChanged, this, &MainWindow::on_comboSelectPort_currentIndexChanged);
 }
 
 MainWindow::~MainWindow()
@@ -35,33 +37,33 @@ MainWindow::~MainWindow()
 void MainWindow::SetTableCurrentPorts(QList<Sensor*> ports)
 {
     QStringList horizontalHeaderLabels = {"Port", "Identifier", "Name", "Baudrate", "Status"};
-    int columns = horizontalHeaderLabels.size();
 
     ui->tableCurrentConfig->clear();
     ui->tableCurrentConfig->setRowCount(ports.size());
-    ui->tableCurrentConfig->setColumnCount(columns);
+    ui->tableCurrentConfig->setColumnCount(horizontalHeaderLabels.size());
     ui->tableCurrentConfig->setShowGrid(true);
     ui->tableCurrentConfig->setHorizontalHeaderLabels(horizontalHeaderLabels);
 
     int row = 0;
+    ui->comboSelectPort->clear();
+
     foreach (Sensor *sensor, ports)
     {
-        QList<QString> list;
+        QList<QString> columns;
 
-        list.append(sensor->Portname());
-        list.append(sensor->Identifier());
-        list.append(sensor->Name());
-        list.append(QString::number(sensor->Baudrate()));
-        list.append(QString(QVariant::fromValue(sensor->CurrentStatus()).toString()));
+        columns.append(sensor->Portname());
+        columns.append(sensor->Identifier());
+        columns.append(sensor->Name());
+        columns.append(QString::number(sensor->Baudrate()));
+        columns.append(QString(QVariant::fromValue(sensor->CurrentStatus()).toString()));
 
-        ui->comboSelectPort->clear();
         ui->comboSelectPort->addItem(sensor->Name());
         ui->comboSelectPort->setItemData(ui->comboSelectPort->count()-1, sensor->Identifier(), Qt::UserRole);
 
-        for (int col = 0; col < columns; col++)
+        for (int col = 0; col < horizontalHeaderLabels.size(); col++)
         {
             QTableWidgetItem *item = new QTableWidgetItem();
-            item->setData(Qt::DisplayRole, list.at(col));
+            item->setData(Qt::DisplayRole, columns.at(col));
             if (col == 0 || col == 4)
             {
                item->setFlags(item->flags() ^ Qt::ItemIsEditable);
@@ -74,32 +76,14 @@ void MainWindow::SetTableCurrentPorts(QList<Sensor*> ports)
     ui->tableCurrentConfig->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::Interactive);
     ui->tableCurrentConfig->resizeColumnsToContents();
     ui->tabWidget->setCurrentIndex(0);
+    emit sensorStatusChanged(ui->comboSelectPort->currentIndex());
 }
 
 void MainWindow::SetSensorStatus(Sensor::SensorStatus status, QString identifier)
 {
-    // find "Identifier" column
-    int identifierColumn = -1;
-    for (int col= 0; col < ui->tableCurrentConfig->columnCount(); col++)
-    {
-        if (ui->tableCurrentConfig->horizontalHeaderItem(col)->text() == "Identifier")
-        {
-            identifierColumn = col;
-            break;
-        }
-    }
+    int identifierColumn = whatColumnNumber("Identifier");
+    int statusColumn = whatColumnNumber("Status");
 
-    // find "Status" column
-    int statusColumn = -1;
-    for (int col= 0; col < ui->tableCurrentConfig->columnCount(); col++)
-    {
-        if (ui->tableCurrentConfig->horizontalHeaderItem(col)->text() == "Status")
-        {
-            statusColumn = col;
-            break;
-        }
-    }
-    // Set new status
     if (statusColumn != -1 && identifierColumn != -1)
     {
         for (int row = 0; row < ui->tableCurrentConfig->rowCount(); row++)
@@ -107,6 +91,7 @@ void MainWindow::SetSensorStatus(Sensor::SensorStatus status, QString identifier
             if (ui->tableCurrentConfig->item(row, identifierColumn)->text() == identifier)
             {
                 ui->tableCurrentConfig->item(row, statusColumn)->setText(QVariant::fromValue(status).toString());
+                emit sensorStatusChanged(ui->comboSelectPort->currentIndex());
             }
         }
     }
@@ -172,4 +157,37 @@ void MainWindow::on_btnRemoveDevice_clicked()
 
     for( int i = countRow; i > 0; i--)
            ui->tableCurrentConfig->removeRow( indexes.at(i-1).row());
+}
+
+void MainWindow::on_comboSelectPort_currentIndexChanged(int index)
+{
+    int identifierColumn = whatColumnNumber("Identifier");
+    int statusColumn = whatColumnNumber("Status");
+
+    if (statusColumn != -1 && identifierColumn != -1)
+    {
+        QString selectedIdentifier = QVariant::fromValue(ui->comboSelectPort->itemData(index, Qt::UserRole)).toString();
+        if (!selectedIdentifier.isEmpty() && !selectedIdentifier.isNull())
+        {
+            for (int row = 0; row < ui->tableCurrentConfig->rowCount(); row++)
+            {
+                if (ui->tableCurrentConfig->item(row, identifierColumn)->text() == selectedIdentifier)
+                {
+                    ui->lineEditSensorStatus->setText(ui->tableCurrentConfig->item(row, statusColumn)->text());
+                }
+            }
+        }
+    }
+}
+
+int MainWindow::whatColumnNumber(QString name)
+{
+    for (int col= 0; col < ui->tableCurrentConfig->columnCount(); col++)
+    {
+        if (ui->tableCurrentConfig->horizontalHeaderItem(col)->text() == name)
+        {
+            return col;
+        }
+    }
+    return -1;
 }
