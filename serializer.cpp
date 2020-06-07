@@ -3,7 +3,6 @@
 
 Serializer::Serializer(MainWindow *mainwindow)
 {
-    this->mainwindow = mainwindow;
     QObject::connect(this, &Serializer::configurationChanged, mainwindow, &MainWindow::SetConfigurationTable);
     QObject::connect(this, &Serializer::sensorDataChanged, mainwindow, &MainWindow::SetSensorData);
     QObject::connect(this, &Serializer::serviceDataChanged, mainwindow, &MainWindow::SetServiceData);
@@ -13,6 +12,7 @@ Serializer::Serializer(MainWindow *mainwindow)
     QObject::connect(mainwindow, &MainWindow::loadConfig, this, &Serializer::LoadConfig);
     QObject::connect(mainwindow, &MainWindow::beginSerial, this, &Serializer::Begin);
     QObject::connect(mainwindow, &MainWindow::stopSerial, this, &Serializer::Stop);
+    QObject::connect(mainwindow, &MainWindow::configurationChangedByUser, this, &Serializer::changeConfigurationByUser);
 }
 
 void Serializer::Begin()
@@ -23,6 +23,7 @@ void Serializer::Begin()
         LoadConfig(defaultConfigurationPath);
     }
     currentWorkingSensors.clear();
+
     for (int devNum = 0; devNum < currentConfiguration.count(); devNum++)
     {
         for (int portNum = 0; portNum < portlist.count(); portNum++)
@@ -34,8 +35,7 @@ void Serializer::Begin()
                                             currentConfiguration.at(devNum)->Baudrate(),
                                             currentConfiguration.at(devNum)->Name());
                 QThread *thread = new QThread();
-
-                sensor->moveToThread(thread);                
+                sensor->moveToThread(thread);
 
                 // obj live & death connections
                 QObject::connect(sensor, &Sensor::threadTerminating, sensor, &Sensor::deleteLater);
@@ -50,7 +50,15 @@ void Serializer::Begin()
 
                 qDebug() << "Sensor " << sensor->Name() << " added";
                 currentWorkingSensors.append(sensor);
-
+                if (sensor->Identifier() == currentConfiguration.at(devNum)->Identifier())
+                {
+                    delete currentConfiguration.at(devNum);
+                    currentConfiguration.replace(devNum, new Sensor(portlist[portNum].portName(),
+                                                                    currentConfiguration.at(devNum)->Identifier(),
+                                                                    currentConfiguration.at(devNum)->Baudrate(),
+                                                                    currentConfiguration.at(devNum)->Name()));
+                    emit  configurationChanged(currentConfiguration);
+                }
                 thread->start();
             }
         }
@@ -71,10 +79,9 @@ void Serializer::Stop()
 
     for (int i = 0; i < currentWorkingSensors.size(); i++)
     {
-        QObject::disconnect(currentWorkingSensors.at(i), &Sensor::statusChanged, this, &Serializer::setSensorStatus);
+        //QObject::disconnect(currentWorkingSensors.at(i), &Sensor::statusChanged, this, &Serializer::setSensorStatus);
         QObject::disconnect(this, &Serializer::stopSerial, currentWorkingSensors.at(i), &Sensor::terminateThread);
         QObject::disconnect(this, &Serializer::beginSerial, currentWorkingSensors.at(i), &Sensor::begin);
-
     }
     currentWorkingSensors.clear();
 }
@@ -109,8 +116,15 @@ void Serializer::setSensorStatus(Sensor::SensorStatus status)
     emit sensorStatusChanged(status, sensor->Identifier());
 }
 
+void Serializer::changeConfigurationByUser(QList<Sensor *> sensors)
+{
+    currentConfiguration = sensors;
+    emit configurationChanged(currentConfiguration); //back-to-back configuration to mainwindow to apply changes in other elements e.g. combobox etc.
+}
+
 void Serializer::SaveConfig(QString path)
 {
+    qDebug() << "Saving config at" << path << "...";
     QFile file(path);
     if (file.open(QIODevice::WriteOnly))
     {
@@ -131,10 +145,11 @@ void Serializer::SaveConfig(QString path)
         }
         xmlWriter.writeEndDocument();
         file.close();
+        qDebug() << "Successfully saved config";
     }
     else
     {
-        qDebug() << "Cannot open file for write";
+        qDebug() << "Save error - cannot open file for write.";
     }
 }
 

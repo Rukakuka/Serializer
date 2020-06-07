@@ -50,7 +50,7 @@ public:
 private:
 
     const QString terminator = "\r\n";    
-    const long timeout = 5000;
+    const long timeout = 100; // [ms]
     const int messageSize = 24;
 
     long baudrate;

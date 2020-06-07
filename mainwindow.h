@@ -35,8 +35,9 @@ public:
 private:
     Ui::Mainwindow *ui;
     QList<QLineEdit*> *lineEditList;
-    QList<Sensor*> *ports;    
-    int whatColumnNumber(QString name);
+
+    int whatColumnNumber(QString name);    
+    QList<Sensor*> formatConfig(QTableWidget *table);
 
 public slots:
     void SetSensorData(qint16 *databuf, QString identifier);
@@ -53,12 +54,12 @@ private slots:
     void on_btnRemoveDevice_clicked();
     void on_comboSelectPort_currentIndexChanged(int index);
 
-signals:
-    void sensorStatusChanged(int comboBoxIndex);
+signals:    
     void stopSerial();
     void beginSerial();
     void saveConfig(QString);
     void loadConfig(QString);
+    void configurationChangedByUser(QList<Sensor*> sensors);
 
 };
 #endif // SERIALIZER_H

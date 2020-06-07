@@ -10,4 +10,9 @@
         <Name>LSM303</Name>
         <Baudrate>2500000</Baudrate>
     </Device>
+    <Device count="2">
+        <Identifier>55737303030351202666</Identifier>
+        <Name>Dummy</Name>
+        <Baudrate>9600</Baudrate>
+    </Device>
 </Configuration>

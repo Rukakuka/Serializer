@@ -37,16 +37,13 @@ public:
 
 
 public slots:
-
     void Begin();
     void Stop();
     void SaveConfig(QString path);
     void LoadConfig(QString path);
+    void changeConfigurationByUser(QList<Sensor*> sensors);
 
 private:
-
-    MainWindow *mainwindow;
-
     bool AddDevice(QXmlStreamReader *reader, QList<Sensor*>* configuration);
     void AddDeviceConfig(QXmlStreamReader *reader, QList<Sensor*>* configuration, int *deviceCount);
     void ParseConfig(QXmlStreamReader *reader, QList<Sensor*>* configuration);
@@ -66,11 +63,10 @@ private slots:
     void setServiceData(Sensor::ServiceData data);
     void setSensorStatus(Sensor::SensorStatus status);
 
-signals:    
-    void configurationChanged(QList<Sensor *> newConfig);
+signals:
     void stopSerial();
     void beginSerial();
-
+    void configurationChanged(QList<Sensor *> sensors);
     void sensorDataChanged(qint16* data, QString identifier);
     void serviceDataChanged(Sensor::ServiceData data, QString identifier);
     void sensorStatusChanged(Sensor::SensorStatus status, QString identifier);

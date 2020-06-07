@@ -8,7 +8,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
     ui->setupUi(this);
 
     this->lineEditList = new QList<QLineEdit*>;
-    this->ports = new QList<Sensor*>;
 
     lineEditList->append(ui->lineEditAx);
     lineEditList->append(ui->lineEditAy),
@@ -25,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
     ui->tableCurrentConfig->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
     ui->tableCurrentConfig->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
 
-    QObject::connect(this, &MainWindow::sensorStatusChanged, this, &MainWindow::on_comboSelectPort_currentIndexChanged);
+    ui->btnStop->setEnabled(false);
 }
 
 MainWindow::~MainWindow()
@@ -33,12 +32,12 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::SetConfigurationTable(QList<Sensor*> ports)
+void MainWindow::SetConfigurationTable(QList<Sensor*> sensors)
 {
     QStringList horizontalHeaderLabels = {"Port", "Identifier", "Name", "Baudrate", "Status"};
 
     ui->tableCurrentConfig->clear();
-    ui->tableCurrentConfig->setRowCount(ports.size());
+    ui->tableCurrentConfig->setRowCount(sensors.size());
     ui->tableCurrentConfig->setColumnCount(horizontalHeaderLabels.size());
     ui->tableCurrentConfig->setShowGrid(true);
     ui->tableCurrentConfig->setHorizontalHeaderLabels(horizontalHeaderLabels);
@@ -46,8 +45,11 @@ void MainWindow::SetConfigurationTable(QList<Sensor*> ports)
     int row = 0;
     ui->comboSelectPort->clear();
 
-    foreach (Sensor *sensor, ports)
+    foreach (Sensor *sensor, sensors)
     {
+        if (sensor == nullptr)
+            continue;
+
         QList<QString> columns;
 
         columns.append(sensor->Portname());
@@ -75,7 +77,7 @@ void MainWindow::SetConfigurationTable(QList<Sensor*> ports)
     ui->tableCurrentConfig->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::Interactive);
     ui->tableCurrentConfig->resizeColumnsToContents();
     ui->tabWidget->setCurrentIndex(0);
-    emit sensorStatusChanged(ui->comboSelectPort->currentIndex());
+    on_comboSelectPort_currentIndexChanged(ui->comboSelectPort->currentIndex());
 }
 
 void MainWindow::SetSensorStatus(Sensor::SensorStatus status, QString identifier)
@@ -90,7 +92,7 @@ void MainWindow::SetSensorStatus(Sensor::SensorStatus status, QString identifier
             if (ui->tableCurrentConfig->item(row, identifierColumn)->text() == identifier)
             {
                 ui->tableCurrentConfig->item(row, statusColumn)->setText(QVariant::fromValue(status).toString());
-                emit sensorStatusChanged(ui->comboSelectPort->currentIndex());
+                on_comboSelectPort_currentIndexChanged(ui->comboSelectPort->currentIndex());
             }
         }
     }
@@ -122,12 +124,16 @@ void MainWindow::SetServiceData(Sensor::ServiceData data, QString identifier)
 void MainWindow::on_btnStart_clicked()
 {
     ui->btnLoadConfig->setEnabled(false);
+    ui->btnStop->setEnabled(true);
+    ui->btnStart->setEnabled(false);
     emit beginSerial();
 }
 
 void MainWindow::on_btnStop_clicked()
 {
     ui->btnLoadConfig->setEnabled(true);
+    ui->btnStop->setEnabled(false);
+    ui->btnStart->setEnabled(true);
     emit stopSerial();
 }
 
@@ -141,7 +147,44 @@ void MainWindow::on_btnLoadConfig_clicked()
 void MainWindow::on_btnSaveConfig_clicked()
 {
     QString path = QFileDialog::getSaveFileName(nullptr, "configuration", ".", "XML files (*.xml)" );
-    emit saveConfig(path);
+    if (!path.isNull() && !path.isEmpty())
+    {
+        QList<Sensor*> config = formatConfig(ui->tableCurrentConfig);
+        emit configurationChangedByUser(config);
+        emit saveConfig(path);
+    }
+}
+
+QList<Sensor *> MainWindow::formatConfig(QTableWidget* table)
+{
+    QList<Sensor*> sensors;
+
+    int identifierColumn = whatColumnNumber("Identifier");
+    int baudrateColumn = whatColumnNumber("Baudrate");
+    int nameColumn = whatColumnNumber("Name");
+
+    if (identifierColumn != -1 && baudrateColumn !=-1 && nameColumn != -1)
+    {
+        for (int row = 0; row < ui->tableCurrentConfig->rowCount(); row++)
+        {
+            if (table->item(row, identifierColumn)->text().size() == 20 &&
+                    table->item(row, baudrateColumn)->text().toLong() > 0 &&
+                    table->item(row, nameColumn)->text().size() > 0)
+            {
+
+                Sensor *sensor = new Sensor("",
+                                            table->item(row, identifierColumn)->text(),
+                                            table->item(row, baudrateColumn)->text().toLong(),
+                                            table->item(row, nameColumn)->text());
+                sensors.append(sensor);
+            }
+            else
+            {
+                qDebug() << "Skipped sensor at position" << row+1 << ". Bad parameters";
+            }
+        }
+    }
+    return sensors;
 }
 
 void MainWindow::on_btnAddDevice_clicked()
@@ -151,15 +194,18 @@ void MainWindow::on_btnAddDevice_clicked()
 
 void MainWindow::on_btnRemoveDevice_clicked()
 {
-    QModelIndexList indexes =  ui->tableCurrentConfig->selectionModel()->selectedRows();
+    QModelIndexList indexes = ui->tableCurrentConfig->selectionModel()->selectedRows();
     int countRow = indexes.count();
 
     for( int i = countRow; i > 0; i--)
-           ui->tableCurrentConfig->removeRow( indexes.at(i-1).row());
+    {
+        ui->tableCurrentConfig->removeRow(indexes.at(i-1).row());
+    }
 }
 
 void MainWindow::on_comboSelectPort_currentIndexChanged(int index)
 {
+
     int identifierColumn = whatColumnNumber("Identifier");
     int statusColumn = whatColumnNumber("Status");
 
