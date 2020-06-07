@@ -1,4 +1,4 @@
-QT       += core gui serialport xml
+QT       += core gui serialport xml widgets datavisualization
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -36,3 +36,20 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 DISTFILES += \
     configuration.xml
+
+
+
+INCLUDEPATH += ../../../include
+
+LIBS += -L$$OUT_PWD/../../../lib
+
+TEMPLATE = app
+
+QT += datavisualization
+
+contains(TARGET, qml.*) {
+    QT += qml quick
+}
+
+target.path = $$[QT_INSTALL_EXAMPLES]/datavisualization/$$TARGET
+INSTALLS += target

@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+using namespace QtDataVisualization;
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwindow)
 {
     qRegisterMetaType<QTableWidget*>();
@@ -24,7 +26,36 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
     ui->tableCurrentConfig->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
     ui->tableCurrentConfig->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
 
-    ui->btnStop->setEnabled(false);
+    ui->btnStartStopSwitch->setText("Start");
+
+    //! [0]
+    Q3DSurface *graph = new Q3DSurface();
+    QWidget *container = QWidget::createWindowContainer(graph);
+    //! [0]
+
+    if (!graph->hasContext())
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Couldn't initialize the OpenGL context.");
+        msgBox.exec();
+    }
+
+    //QSize screenSize = graph->screen()->size();
+    //container->setMinimumSize(QSize(screenSize.width() / 2, screenSize.height() / 1.6));
+    //container->setMaximumSize(screenSize);
+    container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    container->setFocusPolicy(Qt::StrongFocus);
+
+    //! [1]
+    QHBoxLayout *hLayout = new QHBoxLayout(ui->plot);
+    QVBoxLayout *vLayout = new QVBoxLayout();
+    hLayout->addWidget(container, 1);
+    hLayout->addLayout(vLayout);
+    vLayout->setAlignment(Qt::AlignTop);
+    //! [1]
+
+
+
 }
 
 MainWindow::~MainWindow()
@@ -121,20 +152,22 @@ void MainWindow::SetServiceData(Sensor::ServiceData data, QString identifier)
     }
 }
 
-void MainWindow::on_btnStart_clicked()
+void MainWindow::on_btnStartStopSwitch_clicked()
 {
-    ui->btnLoadConfig->setEnabled(false);
-    ui->btnStop->setEnabled(true);
-    ui->btnStart->setEnabled(false);
-    emit beginSerial();
-}
-
-void MainWindow::on_btnStop_clicked()
-{
-    ui->btnLoadConfig->setEnabled(true);
-    ui->btnStop->setEnabled(false);
-    ui->btnStart->setEnabled(true);
-    emit stopSerial();
+    if (ui->btnStartStopSwitch->text() == "Start")
+    {
+        ui->btnLoadConfig->setEnabled(false);
+        ui->btnSaveConfig->setEnabled(false);
+        ui->btnStartStopSwitch->setText("Stop");
+        emit beginSerial();
+    }
+    else
+    {
+        ui->btnLoadConfig->setEnabled(true);
+        ui->btnSaveConfig->setEnabled(true);
+        ui->btnStartStopSwitch->setText("Start");
+        emit stopSerial();
+    }
 }
 
 void MainWindow::on_btnLoadConfig_clicked()
@@ -162,6 +195,7 @@ QList<Sensor *> MainWindow::formatConfig(QTableWidget* table)
     int identifierColumn = whatColumnNumber("Identifier");
     int baudrateColumn = whatColumnNumber("Baudrate");
     int nameColumn = whatColumnNumber("Name");
+    int portColumn = whatColumnNumber("Port");
 
     if (identifierColumn != -1 && baudrateColumn !=-1 && nameColumn != -1)
     {
@@ -172,7 +206,7 @@ QList<Sensor *> MainWindow::formatConfig(QTableWidget* table)
                     table->item(row, nameColumn)->text().size() > 0)
             {
 
-                Sensor *sensor = new Sensor("",
+                Sensor *sensor = new Sensor(table->item(row, portColumn)->text(),
                                             table->item(row, identifierColumn)->text(),
                                             table->item(row, baudrateColumn)->text().toLong(),
                                             table->item(row, nameColumn)->text());

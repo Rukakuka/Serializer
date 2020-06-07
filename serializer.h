@@ -44,9 +44,10 @@ public slots:
     void changeConfigurationByUser(QList<Sensor*> sensors);
 
 private:
-    bool AddDevice(QXmlStreamReader *reader, QList<Sensor*>* configuration);
-    void AddDeviceConfig(QXmlStreamReader *reader, QList<Sensor*>* configuration, int *deviceCount);
-    void ParseConfig(QXmlStreamReader *reader, QList<Sensor*>* configuration);
+    bool addDevice(QXmlStreamReader *reader, QList<Sensor*>* configuration);
+    void addDeviceConfig(QXmlStreamReader *reader, QList<Sensor*>* configuration, int *deviceCount);
+    void parseConfig(QXmlStreamReader *reader, QList<Sensor*>* configuration);
+    QString whatConnectedPort(QList<QSerialPortInfo> portlist, Sensor *sensor);
 
     QList<Sensor*> currentConfiguration;
     QList<Sensor*> currentWorkingSensors;
@@ -56,7 +57,8 @@ private:
     const QString rootName = "Configuration";
     const QString childrenName = "Device";
     const QString childrenAttributeName = "count";
-    const QStringList chilrenFields = {"Port", "Identifier", "Name", "Baudrate", "Status"};
+    const QStringList chilrenFields = {"Port", "Identifier", "Name", "Baudrate", "Status"};    
+    bool validatePortName(QString portname);
 
 private slots:
     void setSensorData(qint16* data);

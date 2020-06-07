@@ -26,45 +26,74 @@ void Serializer::Begin()
 
     for (int devNum = 0; devNum < currentConfiguration.count(); devNum++)
     {
-        for (int portNum = 0; portNum < portlist.count(); portNum++)
+        QString portname = whatConnectedPort(portlist, currentConfiguration.at(devNum));
+
+        if (validatePortName(portname))
         {
-            if (portlist[portNum].serialNumber() == currentConfiguration.at(devNum)->Identifier())
-            {
-                Sensor *sensor = new Sensor(portlist[portNum].portName(),
-                                            currentConfiguration.at(devNum)->Identifier(),
-                                            currentConfiguration.at(devNum)->Baudrate(),
-                                            currentConfiguration.at(devNum)->Name());
-                QThread *thread = new QThread();
-                sensor->moveToThread(thread);
+            Sensor *sensor = new Sensor(portname,
+                                        currentConfiguration.at(devNum)->Identifier(),
+                                        currentConfiguration.at(devNum)->Baudrate(),
+                                        currentConfiguration.at(devNum)->Name());
+            QThread *thread = new QThread();
+            sensor->moveToThread(thread);
 
-                // obj live & death connections
-                QObject::connect(sensor, &Sensor::threadTerminating, sensor, &Sensor::deleteLater);
-                QObject::connect(thread, &QThread::finished, thread, &QThread::deleteLater);
-                QObject::connect(this, &Serializer::stopSerial, sensor, &Sensor::terminateThread);
-                QObject::connect(this, &Serializer::beginSerial, sensor, &Sensor::begin);
+            // obj live & death connections
+            QObject::connect(sensor, &Sensor::threadTerminating, sensor, &Sensor::deleteLater);
+            QObject::connect(thread, &QThread::finished, thread, &QThread::deleteLater);
+            QObject::connect(this, &Serializer::stopSerial, sensor, &Sensor::terminateThread);
+            QObject::connect(this, &Serializer::beginSerial, sensor, &Sensor::begin);
 
-                // outcoming data connections
-                QObject::connect(sensor, &Sensor::sensorDataChanged, this, &Serializer::setSensorData);
-                QObject::connect(sensor, &Sensor::serviceDataChanged, this, &Serializer::setServiceData);
-                QObject::connect(sensor, &Sensor::statusChanged, this, &Serializer::setSensorStatus);
+            // outcoming data connections
+            QObject::connect(sensor, &Sensor::sensorDataChanged, this, &Serializer::setSensorData);
+            QObject::connect(sensor, &Sensor::serviceDataChanged, this, &Serializer::setServiceData);
+            QObject::connect(sensor, &Sensor::statusChanged, this, &Serializer::setSensorStatus);
 
-                qDebug() << "Sensor " << sensor->Name() << " added";
-                currentWorkingSensors.append(sensor);
-                if (sensor->Identifier() == currentConfiguration.at(devNum)->Identifier())
-                {
-                    delete currentConfiguration.at(devNum);
-                    currentConfiguration.replace(devNum, new Sensor(portlist[portNum].portName(),
-                                                                    currentConfiguration.at(devNum)->Identifier(),
-                                                                    currentConfiguration.at(devNum)->Baudrate(),
-                                                                    currentConfiguration.at(devNum)->Name()));
-                    emit  configurationChanged(currentConfiguration);
-                }
-                thread->start();
-            }
+            qDebug() << "Sensor " << sensor->Name() << " added";
+            currentWorkingSensors.append(sensor);
+            delete currentConfiguration.at(devNum);
+            currentConfiguration.replace(devNum, new Sensor(portname,
+                                                            currentConfiguration.at(devNum)->Identifier(),
+                                                            currentConfiguration.at(devNum)->Baudrate(),
+                                                            currentConfiguration.at(devNum)->Name()));
+            emit  configurationChanged(currentConfiguration);
+            thread->start();
+        }
+        else
+        {
+            delete currentConfiguration.at(devNum);
+            currentConfiguration.replace(devNum, new Sensor("",
+                                                            currentConfiguration.at(devNum)->Identifier(),
+                                                            currentConfiguration.at(devNum)->Baudrate(),
+                                                            currentConfiguration.at(devNum)->Name()));
+            emit  configurationChanged(currentConfiguration);
         }
     }
-    emit beginSerial();    
+    emit beginSerial();
     qDebug() << "Setup done in thread " << QThread::currentThreadId();
+}
+
+QString Serializer::whatConnectedPort(QList<QSerialPortInfo> portlist, Sensor* sensor)
+{
+    for (int portNum = 0; portNum < portlist.count(); portNum++)
+    {
+        if (portlist[portNum].serialNumber() == sensor->Identifier())
+        {
+            return portlist[portNum].portName();
+        }
+    }
+    return "";
+}
+
+bool Serializer::validatePortName(QString portname)
+{
+    if (portname.contains("COM") && portname.mid(3).toInt() > 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 void Serializer::Stop()
@@ -165,13 +194,13 @@ void Serializer::LoadConfig(QString path)
     {
         currentConfiguration.clear();
         QXmlStreamReader reader(&file);
-        ParseConfig(&reader, &currentConfiguration);
+        parseConfig(&reader, &currentConfiguration);
         emit configurationChanged(currentConfiguration);
         file.close();
     }
 }
 
-void Serializer::ParseConfig(QXmlStreamReader* reader, QList<Sensor*>* configuration)
+void Serializer::parseConfig(QXmlStreamReader* reader, QList<Sensor*>* configuration)
 {
     qDebug() << "\nParsing configuration...";
     int deviceCount = -1;
@@ -187,13 +216,13 @@ void Serializer::ParseConfig(QXmlStreamReader* reader, QList<Sensor*>* configura
             if (reader->name() == rootName)
                 continue;
             if (reader->name() == childrenName)
-                AddDeviceConfig(reader, configuration, &deviceCount);
+                addDeviceConfig(reader, configuration, &deviceCount);
         }
     }
     qDebug() << "Parsing completed.";
 }
 
-void Serializer::AddDeviceConfig(QXmlStreamReader* reader, QList<Sensor*>* configuration, int *deviceCount)
+void Serializer::addDeviceConfig(QXmlStreamReader* reader, QList<Sensor*>* configuration, int *deviceCount)
 {
     if (reader->tokenType() != QXmlStreamReader::StartElement && reader->name() == childrenName)
         return;
@@ -205,7 +234,7 @@ void Serializer::AddDeviceConfig(QXmlStreamReader* reader, QList<Sensor*>* confi
         {
             *deviceCount = num;
             reader->readNext();
-            if (!AddDevice(reader, configuration))
+            if (!addDevice(reader, configuration))
             {
                 qDebug() << "Skip device at position" << num << " - error parsing fields.";
             }
@@ -221,7 +250,7 @@ void Serializer::AddDeviceConfig(QXmlStreamReader* reader, QList<Sensor*>* confi
     }
 }
 
-bool Serializer::AddDevice(QXmlStreamReader* reader, QList<Sensor*>* configuration)
+bool Serializer::addDevice(QXmlStreamReader* reader, QList<Sensor*>* configuration)
 {
     QString identifier = "";
     QString name = "";

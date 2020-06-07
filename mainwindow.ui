@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>900</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,13 +27,13 @@
        <attribute name="title">
         <string>Main</string>
        </attribute>
-       <widget class="QPushButton" name="btnStart">
+       <widget class="QPushButton" name="btnStartStopSwitch">
         <property name="geometry">
          <rect>
-          <x>10</x>
-          <y>10</y>
-          <width>91</width>
-          <height>31</height>
+          <x>170</x>
+          <y>380</y>
+          <width>81</width>
+          <height>21</height>
          </rect>
         </property>
         <property name="text">
@@ -43,63 +43,13 @@
        <widget class="QWidget" name="gridLayoutWidget">
         <property name="geometry">
          <rect>
-          <x>110</x>
+          <x>10</x>
           <y>10</y>
-          <width>151</width>
-          <height>276</height>
+          <width>242</width>
+          <height>388</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="lineEditAx"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Ax</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QLineEdit" name="lineEditGx"/>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="lineEditAz"/>
-         </item>
-         <item row="7" column="0">
-          <widget class="QLabel" name="label_8">
-           <property name="text">
-            <string>Mx</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="label_7">
-           <property name="text">
-            <string>Gz</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Ay</string>
-           </property>
-          </widget>
-         </item>
-         <item row="8" column="1">
-          <widget class="QLineEdit" name="lineEditMy"/>
-         </item>
-         <item row="6" column="1">
-          <widget class="QLineEdit" name="lineEditGz"/>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>Gy</string>
-           </property>
-          </widget>
-         </item>
          <item row="8" column="0">
           <widget class="QLabel" name="label_9">
            <property name="text">
@@ -107,10 +57,30 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_4">
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>Az</string>
+            <string>Gx</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLabel" name="label_8">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="text">
+            <string>Mx</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="lineEditAx"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Ay</string>
            </property>
           </widget>
          </item>
@@ -121,27 +91,47 @@
            </property>
           </widget>
          </item>
-         <item row="9" column="1">
-          <widget class="QLineEdit" name="lineEditMz"/>
+         <item row="11" column="1">
+          <widget class="QLineEdit" name="lineEditAverageRemoteTime"/>
          </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>Gx</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QLineEdit" name="lineEditGy"/>
-         </item>
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="lineEditAy"/>
-         </item>
-         <item row="7" column="1">
-          <widget class="QLineEdit" name="lineEditMx"/>
+         <item row="12" column="1">
+          <widget class="QLineEdit" name="lineEditSensorStatus"/>
          </item>
          <item row="0" column="1">
           <widget class="QComboBox" name="comboSelectPort"/>
+         </item>
+         <item row="11" column="0">
+          <widget class="QLabel" name="label_12">
+           <property name="text">
+            <string>Avg send frequency remote, hz:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="lineEditAz"/>
+         </item>
+         <item row="13" column="0">
+          <widget class="QLabel" name="labelMissedPackets">
+           <property name="text">
+            <string>Missed packets (last 1000)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QLineEdit" name="lineEditGz"/>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Az</string>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="1">
+          <widget class="QLineEdit" name="lineEditAverageLocalTime"/>
+         </item>
+         <item row="13" column="1">
+          <widget class="QLineEdit" name="lineEditMissedPackets"/>
          </item>
          <item row="0" column="0">
           <widget class="QLabel" name="label_13">
@@ -150,72 +140,70 @@
            </property>
           </widget>
          </item>
-        </layout>
-       </widget>
-       <widget class="QPushButton" name="btnStop">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>50</y>
-          <width>91</width>
-          <height>31</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Stop</string>
-        </property>
-       </widget>
-       <widget class="QWidget" name="gridLayoutWidget_2">
-        <property name="geometry">
-         <rect>
-          <x>270</x>
-          <y>10</y>
-          <width>301</width>
-          <height>108</height>
-         </rect>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_2">
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="lineEditAverageRemoteTime"/>
-         </item>
-         <item row="2" column="0">
+         <item row="10" column="0">
           <widget class="QLabel" name="label_11">
            <property name="text">
             <string>Avg send frequency local, hz:</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="lineEditMissedPackets"/>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="labelMissedPackets">
-           <property name="text">
-            <string>Missed packets (last 1000)</string>
-           </property>
-          </widget>
+         <item row="4" column="1">
+          <widget class="QLineEdit" name="lineEditGx"/>
          </item>
          <item row="2" column="1">
-          <widget class="QLineEdit" name="lineEditAverageLocalTime"/>
+          <widget class="QLineEdit" name="lineEditAy"/>
          </item>
          <item row="1" column="0">
-          <widget class="QLabel" name="label_12">
+          <widget class="QLabel" name="label_2">
            <property name="text">
-            <string>Avg send frequency remote, hz:</string>
+            <string>Ax</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
+         <item row="6" column="0">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string>Gz</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="1">
+          <widget class="QLineEdit" name="lineEditMy"/>
+         </item>
+         <item row="12" column="0">
           <widget class="QLabel" name="labelSensorStatus">
            <property name="text">
             <string>Status:</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="lineEditSensorStatus"/>
+         <item row="7" column="1">
+          <widget class="QLineEdit" name="lineEditMx"/>
+         </item>
+         <item row="9" column="1">
+          <widget class="QLineEdit" name="lineEditMz"/>
+         </item>
+         <item row="5" column="1">
+          <widget class="QLineEdit" name="lineEditGy"/>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>Gy</string>
+           </property>
+          </widget>
          </item>
         </layout>
+       </widget>
+       <widget class="QWidget" name="plot" native="true">
+        <property name="geometry">
+         <rect>
+          <x>530</x>
+          <y>10</y>
+          <width>341</width>
+          <height>391</height>
+         </rect>
+        </property>
        </widget>
       </widget>
       <widget class="QWidget" name="configuration">
@@ -226,7 +214,7 @@
         <property name="geometry">
          <rect>
           <x>470</x>
-          <y>0</y>
+          <y>10</y>
           <width>101</width>
           <height>21</height>
          </rect>
@@ -239,7 +227,7 @@
         <property name="geometry">
          <rect>
           <x>470</x>
-          <y>30</y>
+          <y>40</y>
           <width>101</width>
           <height>21</height>
          </rect>
@@ -252,9 +240,9 @@
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>0</y>
+          <y>10</y>
           <width>461</width>
-          <height>313</height>
+          <height>321</height>
          </rect>
         </property>
        </widget>
@@ -294,7 +282,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>600</width>
+     <width>900</width>
      <height>21</height>
     </rect>
    </property>

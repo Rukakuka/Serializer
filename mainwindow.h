@@ -18,6 +18,26 @@
 #include <QHeaderView>
 #include <QFileDialog>
 
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QRadioButton>
+#include <QtWidgets/QSlider>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QMessageBox>
+#include <QtGui/QPainter>
+#include <QtGui/QScreen>
+
+#include <QtDataVisualization/Q3DSurface>
+#include <QtDataVisualization/QSurfaceDataProxy>
+#include <QtDataVisualization/QHeightMapSurfaceDataProxy>
+#include <QtDataVisualization/QSurface3DSeries>
+#include <QtWidgets/QSlider>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class Mainwindow; }
 QT_END_NAMESPACE
@@ -46,8 +66,7 @@ public slots:
     void SetConfigurationTable(QList<Sensor*> sensors);
 
 private slots:
-    void on_btnStart_clicked();
-    void on_btnStop_clicked();
+    void on_btnStartStopSwitch_clicked();
     void on_btnLoadConfig_clicked();
     void on_btnSaveConfig_clicked();
     void on_btnAddDevice_clicked();
