@@ -18,31 +18,9 @@
 #include <QHeaderView>
 #include <QFileDialog>
 
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QWidget>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QRadioButton>
-#include <QtWidgets/QSlider>
-#include <QtWidgets/QGroupBox>
-#include <QtWidgets/QComboBox>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QMessageBox>
-#include <QtGui/QPainter>
-#include <QtGui/QScreen>
-
-#include <QtDataVisualization/Q3DSurface>
-#include <QtDataVisualization/QSurfaceDataProxy>
-#include <QtDataVisualization/QHeightMapSurfaceDataProxy>
-#include <QtDataVisualization/QSurface3DSeries>
-#include <QtWidgets/QSlider>
-
 QT_BEGIN_NAMESPACE
 namespace Ui { class Mainwindow; }
 QT_END_NAMESPACE
-
-Q_DECLARE_METATYPE(QTableWidget*)
 
 class MainWindow : public QMainWindow
 {

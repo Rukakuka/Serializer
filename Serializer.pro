@@ -1,4 +1,4 @@
-QT       += core gui serialport xml widgets datavisualization
+QT       += core gui serialport xml opengl
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -19,37 +19,22 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     sensor.cpp \
+    sensorvisualization.cpp \
     serializer.cpp
 
 HEADERS += \
     mainwindow.h \
     sensor.h \
+    sensorvisualization.h \
     serializer.h
 
 FORMS += \
     mainwindow.ui
+
+LIBS += -lglu32 -lopengl32
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-DISTFILES += \
-    configuration.xml
-
-
-
-INCLUDEPATH += ../../../include
-
-LIBS += -L$$OUT_PWD/../../../lib
-
-TEMPLATE = app
-
-QT += datavisualization
-
-contains(TARGET, qml.*) {
-    QT += qml quick
-}
-
-target.path = $$[QT_INSTALL_EXAMPLES]/datavisualization/$$TARGET
-INSTALLS += target

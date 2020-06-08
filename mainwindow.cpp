@@ -1,12 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
-using namespace QtDataVisualization;
+#include "sensorvisualization.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwindow)
 {
-    qRegisterMetaType<QTableWidget*>();
-
     ui->setupUi(this);
 
     this->lineEditList = new QList<QLineEdit*>;
@@ -27,35 +24,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
     ui->tableCurrentConfig->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
 
     ui->btnStartStopSwitch->setText("Start");
-
-    //! [0]
-    Q3DSurface *graph = new Q3DSurface();
-    QWidget *container = QWidget::createWindowContainer(graph);
-    //! [0]
-
-    if (!graph->hasContext())
-    {
-        QMessageBox msgBox;
-        msgBox.setText("Couldn't initialize the OpenGL context.");
-        msgBox.exec();
-    }
-
-    //QSize screenSize = graph->screen()->size();
-    //container->setMinimumSize(QSize(screenSize.width() / 2, screenSize.height() / 1.6));
-    //container->setMaximumSize(screenSize);
-    container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    container->setFocusPolicy(Qt::StrongFocus);
-
-    //! [1]
-    QHBoxLayout *hLayout = new QHBoxLayout(ui->plot);
-    QVBoxLayout *vLayout = new QVBoxLayout();
-    hLayout->addWidget(container, 1);
-    hLayout->addLayout(vLayout);
-    vLayout->setAlignment(Qt::AlignTop);
-    //! [1]
-
-
-
 }
 
 MainWindow::~MainWindow()
@@ -138,6 +106,7 @@ void MainWindow::SetSensorData(qint16 *databuf, QString identifier)
         {
             lineEditList->at(i)->setText(QString::number(databuf[i]));
         }
+        ui->openGLWidget->setRotation(((float)databuf[0])/100, ((float)databuf[1])/100, ((float)databuf[2])/100);
     }
 }
 
