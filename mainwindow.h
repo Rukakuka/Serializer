@@ -30,6 +30,8 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+
+
 private:
     Ui::Mainwindow *ui;
     QList<QLineEdit*> *lineEditList;

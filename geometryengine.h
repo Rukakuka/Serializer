@@ -1,15 +1,17 @@
-#ifndef SENSORVISUALIZATION_H
-#define SENSORVISUALIZATION_H
+#ifndef GEOMETRYENGINE_H
+#define GEOMETRYENGINE_H
 
 #include <QtWidgets>
+#include <QQuaternion>
 
-class SensorVisualization : public QOpenGLWidget
+class GeometryEngine : public QOpenGLWidget
 {
     Q_OBJECT
 public:
-    explicit SensorVisualization(QWidget *parent = 0);
+    explicit GeometryEngine(QWidget *parent = 0);
 
     void setRotation(float x, float y, float z);
+    QQuaternion rotation;
 
 protected:
     void initializeGL();
@@ -25,4 +27,4 @@ private:
 
 };
 
-#endif // SENSORVISUALIZATION_H
+#endif // GEOMETRYENGINE_H
