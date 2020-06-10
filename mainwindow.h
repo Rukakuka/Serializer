@@ -17,6 +17,7 @@
 #include <QCoreApplication>
 #include <QHeaderView>
 #include <QFileDialog>
+#include <QMatrix3x3>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Mainwindow; }
@@ -30,8 +31,6 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-
-
 private:
     Ui::Mainwindow *ui;
     QList<QLineEdit*> *lineEditList;
@@ -44,6 +43,7 @@ public slots:
     void SetServiceData(Sensor::ServiceData data, QString identifier);
     void SetSensorStatus(Sensor::SensorStatus status, QString identifier);
     void SetConfigurationTable(QList<Sensor*> sensors);
+    void SetNewPose(QMatrix3x3 rm);
 
 private slots:
     void on_btnStartStopSwitch_clicked();

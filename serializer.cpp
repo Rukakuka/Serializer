@@ -13,6 +13,8 @@ Serializer::Serializer(MainWindow *mainwindow)
     QObject::connect(mainwindow, &MainWindow::beginSerial, this, &Serializer::Begin);
     QObject::connect(mainwindow, &MainWindow::stopSerial, this, &Serializer::Stop);
     QObject::connect(mainwindow, &MainWindow::configurationChangedByUser, this, &Serializer::changeConfigurationByUser);
+
+    this->mainwindow = mainwindow;
 }
 
 void Serializer::Begin()
@@ -34,8 +36,10 @@ void Serializer::Begin()
                                         currentConfiguration.at(devNum)->Identifier(),
                                         currentConfiguration.at(devNum)->Baudrate(),
                                         currentConfiguration.at(devNum)->Name());
+            GeometryEstimation *ge = new GeometryEstimation();
             QThread *thread = new QThread();
             sensor->moveToThread(thread);
+            ge->moveToThread(thread);
 
             // obj live & death connections
             QObject::connect(sensor, &Sensor::threadTerminating, sensor, &Sensor::deleteLater);
@@ -47,6 +51,10 @@ void Serializer::Begin()
             QObject::connect(sensor, &Sensor::sensorDataChanged, this, &Serializer::setSensorData);
             QObject::connect(sensor, &Sensor::serviceDataChanged, this, &Serializer::setServiceData);
             QObject::connect(sensor, &Sensor::statusChanged, this, &Serializer::setSensorStatus);
+
+            QObject::connect(sensor, &Sensor::sensorDataChanged, ge, &GeometryEstimation::GetPose);
+            QObject::connect(ge, &GeometryEstimation::poseChanged, mainwindow, &MainWindow::SetNewPose);
+
 
             qDebug() << "Sensor " << sensor->Name() << " added";
             currentWorkingSensors.append(sensor);
@@ -115,7 +123,7 @@ void Serializer::Stop()
     currentWorkingSensors.clear();
 }
 
-void Serializer::setSensorData(qint16 *data)
+void Serializer::setSensorData(qint16 *data, quint64 timestamp)
 {
     Sensor* sensor = qobject_cast<Sensor*>(sender());
     if (sensor == nullptr )

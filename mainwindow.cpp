@@ -79,6 +79,11 @@ void MainWindow::SetConfigurationTable(QList<Sensor*> sensors)
     on_comboSelectPort_currentIndexChanged(ui->comboSelectPort->currentIndex());
 }
 
+void MainWindow::SetNewPose(QMatrix3x3 rm)
+{
+    ui->openGLWidget->setRotation(rm);
+}
+
 void MainWindow::SetSensorStatus(Sensor::SensorStatus status, QString identifier)
 {
     int identifierColumn = whatColumnNumber("Identifier");
@@ -106,7 +111,6 @@ void MainWindow::SetSensorData(qint16 *databuf, QString identifier)
         {
             lineEditList->at(i)->setText(QString::number(databuf[i]));
         }
-        ui->openGLWidget->setRotation(((float)databuf[0])/100, ((float)databuf[1])/100, ((float)databuf[2])/100);
     }
 }
 
@@ -118,6 +122,7 @@ void MainWindow::SetServiceData(Sensor::ServiceData data, QString identifier)
         ui->lineEditAverageLocalTime->setText(QString::number(1e12/((double)(data.LocalTimeElapsed))));
         ui->lineEditAverageRemoteTime->setText(QString::number(1e9/((double)(data.RemoteTimeElapsed))));
         ui->lineEditMissedPackets->setText(QString::number(data.DeclinedPackets));
+
     }
 }
 

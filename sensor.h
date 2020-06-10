@@ -83,7 +83,7 @@ private slots:
 
 signals:
     void threadTerminating();
-    void sensorDataChanged(qint16* data);
+    void sensorDataChanged(qint16* data, quint64 timestamp);
     void serviceDataChanged(Sensor::ServiceData data);
     void statusChanged(Sensor::SensorStatus status);
 };

@@ -127,7 +127,7 @@ void Sensor::readyRead()
                     timestamp = quint64((unsigned char)(pack[21]) << 24 | (unsigned char)(pack[20]) << 16 | (unsigned char)(pack[19]) << 8 | (unsigned char)(pack[18]));
                 }
                 rxbuf = rxbuf.mid(end+2);
-                emit sensorDataChanged(databuf);
+                emit sensorDataChanged(databuf, timestamp);
             }
         }
         if (rxbuf.size() > messageSize)

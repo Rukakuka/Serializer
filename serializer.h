@@ -23,9 +23,11 @@
 #include <QStandardItemModel>
 #include <QDir>
 #include <QUrl>
+#include <QMatrix3x3>
 
 #include "sensor.h"
 #include "mainwindow.h"
+#include "geometryestimation.h"
 
 class Serializer : public QObject
 {
@@ -51,6 +53,7 @@ private:
 
     QList<Sensor*> currentConfiguration;
     QList<Sensor*> currentWorkingSensors;
+    MainWindow *mainwindow;
 
     /* *** XML config file parameters *** */
     const QString defaultConfigurationPath = "E:/QtProjects/Serializer/configuration.xml";
@@ -61,7 +64,7 @@ private:
     bool validatePortName(QString portname);
 
 private slots:
-    void setSensorData(qint16* data);
+    void setSensorData(qint16* data, quint64 timestamp);
     void setServiceData(Sensor::ServiceData data);
     void setSensorStatus(Sensor::SensorStatus status);
 

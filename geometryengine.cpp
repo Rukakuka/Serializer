@@ -20,10 +20,14 @@ void GeometryEngine::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
+
     glTranslatef(0.0, 0, -7.0);
-    glRotatef(xrot, 1.0, 0.0, 0.0);
-    glRotatef(yrot, 0.0, 1.0, 0.0);
-    glRotatef(zrot, 0.0, 0.0, 1.0);
+
+    glMultMatrixf(rm4.constData());
+
+    //glRotatef(xrot, 1.0, 0.0, 0.0);
+    //glRotatef(yrot, 0.0, 1.0, 0.0);
+    //glRotatef(zrot, 0.0, 0.0, 1.0);
 
 
     glBegin(GL_QUADS);
@@ -49,10 +53,21 @@ void GeometryEngine::resizeGL(int width, int height)
     glMatrixMode(GL_MODELVIEW);
 }
 
-void GeometryEngine::setRotation(float x, float y, float z)
+void GeometryEngine::setRotation(QMatrix3x3 rm)
 {
-    xrot = x;
-    yrot = y;
-    zrot = z;
+    float dat[] = {rm(0,0), rm(0,1), rm(0,2), 0, rm(1,0), rm(1,1), rm(1,2), 0, rm(2,0), rm(2,1), rm(2,2), 0, 0, 0, 0 ,1};
+    QMatrix4x4 tmp(dat);
+    rm4 = tmp.transposed();
+
+    /*
+    QVector3D v = QQuaternion::fromRotationMatrix(rm).toEulerAngles();
+    qDebug() << v.x() << v.y() << v.z();
+
+    xrot = v.x();
+    yrot = v.y();
+    zrot = v.z();
+    */
+
     update();
 }
+
