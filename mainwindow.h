@@ -19,6 +19,13 @@
 #include <QFileDialog>
 #include <QMatrix3x3>
 
+#include <QtDataVisualization>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QCustom3DItem>
+#include <QImage>
+#include <QObject>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class Mainwindow; }
 QT_END_NAMESPACE
@@ -38,12 +45,14 @@ private:
     int whatColumnNumber(QString name);    
     QList<Sensor*> formatConfig(QTableWidget *table);
 
+    QtDataVisualization::QCustom3DItem *lsm9ds1obj;
+
 public slots:
     void SetSensorData(qint16 *databuf, QString identifier);
     void SetServiceData(Sensor::ServiceData data, QString identifier);
     void SetSensorStatus(Sensor::SensorStatus status, QString identifier);
     void SetConfigurationTable(QList<Sensor*> sensors);
-    void SetNewPose(QMatrix3x3 rm);
+    void SetNewPose(QQuaternion q);
 
 private slots:
     void on_btnStartStopSwitch_clicked();

@@ -24,6 +24,63 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
     ui->tableCurrentConfig->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
 
     ui->btnStartStopSwitch->setText("Start");
+
+    using namespace QtDataVisualization;
+
+    Q3DSurface *graph = new Q3DSurface();
+    QWidget *container = QWidget::createWindowContainer(graph);
+    //! [0]
+
+    if (!graph->hasContext()) {
+        QMessageBox msgBox;
+        msgBox.setText("Couldn't initialize the OpenGL context.");
+        msgBox.exec();
+    }
+    else
+    {
+        container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        container->setFocusPolicy(Qt::StrongFocus);
+
+        QHBoxLayout *hLayout = new QHBoxLayout(ui->plot);
+        QVBoxLayout *vLayout = new QVBoxLayout();
+        hLayout->addWidget(container, 1);
+        hLayout->addLayout(vLayout);
+        vLayout->setAlignment(Qt::AlignTop);
+    }
+    /*
+    QCustom3DItem *item = new QCustom3DItem(":/items/oilrig.obj", positionOne,
+                                            QVector3D(0.025f, 0.025f, 0.025f),
+                                            QQuaternion::fromAxisAndAngle(0.0f, 1.0f, 0.0f, 45.0f),
+                                            color);
+    */
+
+    QImage color = QImage(2, 2, QImage::Format_RGB32);
+    color.fill(Qt::red);
+
+
+    this->lsm9ds1obj = new QCustom3DItem();
+    lsm9ds1obj->setMeshFile("E:/QtProjects/Serializer/solids/lsm9ds1.obj");
+    lsm9ds1obj->setPosition(QVector3D(0, 0, 0));
+    lsm9ds1obj->setScaling(QVector3D(0.06, 0.06, 0.06));
+    lsm9ds1obj->setRotation(QQuaternion::fromAxisAndAngle(0.0f, 0.0f, 0.0f, 0.0f));
+    lsm9ds1obj->setTextureImage(color);
+    graph->addCustomItem(lsm9ds1obj);
+
+
+    QVariant a = "LSM9DS1";
+    lsm9ds1obj->setProperty("Name", a);
+
+    QObjectList objlist = graph->children();
+    foreach (QObject *obj, objlist)
+    {
+        qDebug() << obj;
+        if(obj->property("Name").toString() == "LSM9DS1")
+        {
+            qDebug() << "Got it";
+        }
+    }
+    graph->setObjectName("graph");
+
 }
 
 MainWindow::~MainWindow()
@@ -79,9 +136,13 @@ void MainWindow::SetConfigurationTable(QList<Sensor*> sensors)
     on_comboSelectPort_currentIndexChanged(ui->comboSelectPort->currentIndex());
 }
 
-void MainWindow::SetNewPose(QMatrix3x3 rm)
+void MainWindow::SetNewPose(QQuaternion q)
 {
-    ui->openGLWidget->setRotation(rm);
+    //ui->openGLWidget->setRotation(rm);
+    //lsm9ds1obj->setPosition(QVector3D(0, 0, 0));
+    this->lsm9ds1obj->setRotation(q);
+
+
 }
 
 void MainWindow::SetSensorStatus(Sensor::SensorStatus status, QString identifier)

@@ -1,4 +1,4 @@
-QT       += core gui serialport xml opengl
+QT       += core gui serialport xml opengl datavisualization
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -39,4 +39,7 @@ LIBS += -lglu32 -lopengl32
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES += \
+    configuration.xml
 

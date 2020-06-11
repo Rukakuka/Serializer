@@ -189,13 +189,23 @@
          </item>
         </layout>
        </widget>
-       <widget class="SensorVisualization" name="openGLWidget">
+       <widget class="QWidget" name="plot" native="true">
         <property name="geometry">
          <rect>
           <x>279</x>
-          <y>9</y>
-          <width>591</width>
-          <height>421</height>
+          <y>19</y>
+          <width>571</width>
+          <height>411</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="GeometryEngine" name="openGLWidget">
+        <property name="geometry">
+         <rect>
+          <x>829</x>
+          <y>20</y>
+          <width>21</width>
+          <height>21</height>
          </rect>
         </property>
        </widget>
@@ -290,9 +300,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SensorVisualization</class>
+   <class>GeometryEngine</class>
    <extends>QOpenGLWidget</extends>
-   <header location="global">sensorvisualization.h</header>
+   <header location="global">geometryengine.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
