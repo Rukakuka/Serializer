@@ -18,7 +18,7 @@ public:
 private:
     const float eye[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
 
-    QMatrix3x3 Mgyro;
+    QQuaternion Qgyro;
     QVector3D GyrCor;
 
     void begin();

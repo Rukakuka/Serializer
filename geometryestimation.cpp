@@ -11,8 +11,8 @@ GeometryEstimation::GeometryEstimation(QObject *parent) : QObject(parent)
 void GeometryEstimation::begin()
 {
 
-    Mgyro.setToIdentity();
-
+    Qgyro.setScalar(1);
+    Qgyro.setVector(QVector3D(0,0,0));
 
     GyrCor.setX(0);
     GyrCor.setY(0);
@@ -22,6 +22,7 @@ void GeometryEstimation::begin()
     gyrPrev.setY(0);
     gyrPrev.setZ(0);
 
+    gyroCalibCounter = 0;
     prevTimestamp = 0;
 
     isReady = true;
@@ -46,6 +47,7 @@ void GeometryEstimation::GetPose(qint16 *buf, quint64 timestamp)
     if (buf == nullptr)
         return;
 
+
     if (gyroCalibCounter <= 500)
     {
         GyrCor.setX(GyrCor.x() + (float)buf[3]);
@@ -55,25 +57,22 @@ void GeometryEstimation::GetPose(qint16 *buf, quint64 timestamp)
         prevTimestamp = timestamp;
         return;
     }
-    else
+    else if(!isGyroCalibrated)
     {
-        if (!isGyroCalibrated)
-        {
-            qDebug() << "calib done";
-        }
         isGyroCalibrated = true;
         GyrCor.setX(GyrCor.x()/500);
         GyrCor.setY(GyrCor.y()/500);
         GyrCor.setZ(GyrCor.z()/500);
+        qDebug() << GyrCor.x() << GyrCor.y() << GyrCor.z();
     }
 
     //QVector3D acc(buf[0], buf[1], buf[2]);
     //QVector3D mag(-buf[7], buf[6], buf[8]);
     QVector3D gyr(buf[3], buf[4], buf[5]);
 
-    gyr.setX(((0.05*(gyr.x() - GyrCor.x())) + gyrPrev.x())/2);
-    gyr.setY(((0.05*(gyr.y() - GyrCor.y())) + gyrPrev.y())/2);
-    gyr.setZ(((0.05*(gyr.z() - GyrCor.z())) + gyrPrev.z())/2);
+    gyr.setX(((0.00112*(gyr.x() - GyrCor.x())) + gyrPrev.x())/2);
+    gyr.setY(((0.00112*(gyr.y() - GyrCor.y())) + gyrPrev.y())/2);
+    gyr.setZ(((0.00112*(gyr.z() - GyrCor.z())) + gyrPrev.z())/2);
 
     gyrPrev.setX(gyr.x());
     gyrPrev.setY(gyr.y());
@@ -82,13 +81,12 @@ void GeometryEstimation::GetPose(qint16 *buf, quint64 timestamp)
     float dt = ((float)timestamp - prevTimestamp)/1e6;
     prevTimestamp = timestamp;
 
-    QVector3D vspeed(gyr.x()*dt, gyr.y()*dt, gyr.z()*dt);
+    QVector3D vspeed(-gyr.x()*dt, gyr.z()*dt, gyr.y()*dt);
 
-    qDebug() << vspeed;
-
-    QQuaternion qspeed = QQuaternion::fromEulerAngles(vspeed);//QQuaternion::fromRotationMatrix(angle2dcm(vspeed));
-    QQuaternion Qgyro = qspeed * QQuaternion::fromRotationMatrix(Mgyro);
-    Mgyro = Qgyro.toRotationMatrix();
+    QQuaternion qspeed = QQuaternion::fromRotationMatrix(angle2dcm(vspeed).transposed());
+    Qgyro.normalize();
+    qspeed.normalize();
+    Qgyro = qspeed * Qgyro;
 
     /*
     QVector3D A = QVector3D::crossProduct(acc, mag);
@@ -106,7 +104,7 @@ void GeometryEstimation::GetPose(qint16 *buf, quint64 timestamp)
     //for (int row = 0; row < 3; row++)
       //  for (int col = 0; col < 3; col++)
         //    qDebug() << Mcorrection(row,col);
-    emit poseChanged(QQuaternion::fromRotationMatrix(Mgyro));
+    emit poseChanged(Qgyro);
 }
 
 
