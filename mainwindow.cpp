@@ -52,23 +52,32 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
         hLayout->addLayout(vLayout);
         vLayout->setAlignment(Qt::AlignTop);
     }
-    /*
-    QCustom3DItem *item = new QCustom3DItem(":/items/oilrig.obj", positionOne,
-                                            QVector3D(0.025f, 0.025f, 0.025f),
-                                            QQuaternion::fromAxisAndAngle(0.0f, 1.0f, 0.0f, 45.0f),
-                                            color);
-    */
+
+    graph->axisX()->setRange(-3.0f, 3.0f);
+    graph->axisY()->setRange(-3.0f, 3.0f);
+    graph->axisZ()->setRange(-3.0f, 3.0f);
+
+    graph->axisX()->setTitle(QStringLiteral("X"));
+    graph->axisY()->setTitle(QStringLiteral("Y"));
+    graph->axisZ()->setTitle(QStringLiteral("Z"));
+
+    graph->axisX()->setTitleVisible(true);
+    graph->axisY()->setTitleVisible(true);
+    graph->axisZ()->setTitleVisible(true);
 
     QImage color = QImage(2, 2, QImage::Format_RGB32);
     color.fill(Qt::red);
 
-
     this->lsm9ds1obj = new QCustom3DItem();
-    lsm9ds1obj->setMeshFile("E:/QtProjects/Serializer/solids/lsm9ds1.obj");
-    lsm9ds1obj->setPosition(QVector3D(-0.3, 0.0, 0.3));
-    lsm9ds1obj->setScaling(QVector3D(0.05, 0.05, 0.05));
-    lsm9ds1obj->setRotation(QQuaternion::fromAxisAndAngle(0.0f, 0.0f, 0.0f, 0.0f));
+    lsm9ds1obj->setMeshFile("E:/QtProjects/Serializer/solids/brick.obj");
+
+    lsm9ds1obj->setScalingAbsolute(true);
+    lsm9ds1obj->setScaling(QVector3D(2, 2, 2));
+    lsm9ds1obj->setPositionAbsolute(true);
+    lsm9ds1obj->setPosition(QVector3D(0.0, 0.0, 0.0));
+
     lsm9ds1obj->setTextureImage(color);
+
     graph->addCustomItem(lsm9ds1obj);
 
     QVariant a = "LSM9DS1";
@@ -77,21 +86,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
     QObjectList objlist = graph->children();
     foreach (QObject *obj, objlist)
     {
-        qDebug() << obj;
         if(obj->property("Name").toString() == "LSM9DS1")
         {
             qDebug() << "Got it";
         }
     }
     graph->setObjectName("graph");
-
 }
 
 void MainWindow::SetNewPose(QQuaternion q)
 {
     //ui->openGLWidget->setRotation(rm);
 
-    QVector3D center(-0.3, 0.3, 0.0);
+    QVector3D center(-12.5, 12.5, 0.0);
     QVector3D u = q.vector();
     float s = q.scalar();
 
