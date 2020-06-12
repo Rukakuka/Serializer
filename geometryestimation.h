@@ -20,19 +20,22 @@ private:
 
     QQuaternion Qgyro;
     QVector3D GyrCor;
+    QQuaternion Qini;
 
     void begin();
     void calibrateGyro();
 
     bool isReady = false;
-    bool isGyroCalibrated = false;
-    bool isMagnetCalibrated = false;
+    bool gyroCalibrated = false;
+    bool magnetCalibrated = false;
+    bool initialPoseCaptured = false;
 
     int gyroCalibCounter;
     quint64 prevTimestamp;
     QVector3D gyrPrev;
 
-    QMatrix3x3 angle2dcm(QVector3D gyro);
+    QMatrix3x3 angle2dcm(QVector3D gyro);    
+    QQuaternion gyro2quat(QVector3D gyro);
 
 public slots:
     void GetPose(qint16 *buf, quint64 timestamp);

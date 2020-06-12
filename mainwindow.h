@@ -25,6 +25,7 @@
 #include <QCustom3DItem>
 #include <QImage>
 #include <QObject>
+#include <QVector3D>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Mainwindow; }

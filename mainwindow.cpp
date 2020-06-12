@@ -2,6 +2,11 @@
 #include "ui_mainwindow.h"
 #include "geometryengine.h"
 
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwindow)
 {
     ui->setupUi(this);
@@ -60,12 +65,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
 
     this->lsm9ds1obj = new QCustom3DItem();
     lsm9ds1obj->setMeshFile("E:/QtProjects/Serializer/solids/lsm9ds1.obj");
-    lsm9ds1obj->setPosition(QVector3D(0, 0, 0));
-    lsm9ds1obj->setScaling(QVector3D(0.06, 0.06, 0.06));
+    lsm9ds1obj->setPosition(QVector3D(-0.3, 0.0, 0.3));
+    lsm9ds1obj->setScaling(QVector3D(0.05, 0.05, 0.05));
     lsm9ds1obj->setRotation(QQuaternion::fromAxisAndAngle(0.0f, 0.0f, 0.0f, 0.0f));
     lsm9ds1obj->setTextureImage(color);
     graph->addCustomItem(lsm9ds1obj);
-
 
     QVariant a = "LSM9DS1";
     lsm9ds1obj->setProperty("Name", a);
@@ -83,9 +87,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
 
 }
 
-MainWindow::~MainWindow()
+void MainWindow::SetNewPose(QQuaternion q)
 {
-    delete ui;
+    //ui->openGLWidget->setRotation(rm);
+
+    QVector3D center(-0.3, 0.3, 0.0);
+    QVector3D u = q.vector();
+    float s = q.scalar();
+
+    // Do the math
+    QVector3D offset = 2.0f * QVector3D::dotProduct(u, center) * u
+          + (s*s - QVector3D::dotProduct(u, u)) * center
+          + 2.0f * s * QVector3D::crossProduct(u, center);
+
+    //lsm9ds1obj->setPosition(QVector3D(offset.x(), 0, offset.y()));
+    this->lsm9ds1obj->setRotation(q);
 }
 
 void MainWindow::SetConfigurationTable(QList<Sensor*> sensors)
@@ -134,15 +150,6 @@ void MainWindow::SetConfigurationTable(QList<Sensor*> sensors)
     ui->tableCurrentConfig->resizeColumnsToContents();
     ui->tabWidget->setCurrentIndex(0);
     on_comboSelectPort_currentIndexChanged(ui->comboSelectPort->currentIndex());
-}
-
-void MainWindow::SetNewPose(QQuaternion q)
-{
-    //ui->openGLWidget->setRotation(rm);
-    //lsm9ds1obj->setPosition(QVector3D(0, 0, 0));
-    this->lsm9ds1obj->setRotation(q);
-
-
 }
 
 void MainWindow::SetSensorStatus(Sensor::SensorStatus status, QString identifier)
