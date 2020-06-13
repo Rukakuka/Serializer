@@ -2,7 +2,7 @@
 #include "serializer.h"
 #include "mainwindow.h"
 #include "sensor.h"
-#include "geometryestimation.h"
+#include "sensorgeometry.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     MainWindow mainwindow;
-    GeometryEstimation ge;
+    SensorGeometry ge;
     Serializer serializer(&mainwindow);
 
 

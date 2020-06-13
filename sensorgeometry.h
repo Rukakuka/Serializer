@@ -9,22 +9,25 @@
 #include <QQuaternion>
 #include <QtMath>
 
-class GeometryEstimation : public QObject
+class SensorGeometry : public QObject
 {
     Q_OBJECT
 public:
-    explicit GeometryEstimation(QObject *parent = nullptr);
-
+    explicit SensorGeometry(QObject *parent = nullptr);
+    SensorGeometry(QString identifier);
+    QString identifier() { return m_identifier; }
 private:
     const float eye[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
 
     QQuaternion Qgyro;
-    QVector3D GyrCor;
     QQuaternion Qini;
+
+    QVector3D GyrCor;    
 
     void begin();
     void calibrateGyro();
 
+    QString m_identifier;
     bool isReady = false;
     bool gyroCalibrated = false;
     bool magnetCalibrated = false;
@@ -38,7 +41,7 @@ private:
     QQuaternion gyro2quat(QVector3D gyro);
 
 public slots:
-    void GetPose(qint16 *buf, quint64 timestamp);
+    void calculateNewPose(qint16 *buf, quint64 timestamp);
 
 signals:
     void poseChanged(QQuaternion q);

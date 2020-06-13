@@ -27,7 +27,7 @@
 
 #include "sensor.h"
 #include "mainwindow.h"
-#include "geometryestimation.h"
+#include "sensorgeometry.h"
 
 class Serializer : public QObject
 {
@@ -67,6 +67,7 @@ private slots:
     void setSensorData(qint16* data, quint64 timestamp);
     void setServiceData(Sensor::ServiceData data);
     void setSensorStatus(Sensor::SensorStatus status);
+    void setSensorPose(QQuaternion pose);
 
 signals:
     void stopSerial();
@@ -75,6 +76,7 @@ signals:
     void sensorDataChanged(qint16* data, QString identifier);
     void serviceDataChanged(Sensor::ServiceData data, QString identifier);
     void sensorStatusChanged(Sensor::SensorStatus status, QString identifier);
+    void sensorPoseChanged(QQuaternion pose, QString identifier);
 };
 
 #endif

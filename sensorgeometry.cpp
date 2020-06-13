@@ -1,14 +1,17 @@
-#include "geometryestimation.h"
+#include "sensorgeometry.h"
 
-
-
-GeometryEstimation::GeometryEstimation(QObject *parent) : QObject(parent)
+SensorGeometry::SensorGeometry(QObject *parent) : QObject(parent)
 {
     qRegisterMetaType<QQuaternion>();
     begin();
 }
 
-void GeometryEstimation::begin()
+SensorGeometry::SensorGeometry(QString identifier)
+{
+    m_identifier = identifier;
+}
+
+void SensorGeometry::begin()
 {
 
     Qgyro.setScalar(1);
@@ -28,13 +31,13 @@ void GeometryEstimation::begin()
     isReady = true;
 }
 
-void GeometryEstimation::calibrateGyro()
+void SensorGeometry::calibrateGyro()
 {
 
 }
 
 
-void GeometryEstimation::GetPose(qint16 *buf, quint64 timestamp)
+void SensorGeometry::calculateNewPose(qint16 *buf, quint64 timestamp)
 {
 
     if (!isReady)
@@ -104,7 +107,7 @@ void GeometryEstimation::GetPose(qint16 *buf, quint64 timestamp)
 }
 
 
-QMatrix3x3 GeometryEstimation::angle2dcm(QVector3D gyro)
+QMatrix3x3 SensorGeometry::angle2dcm(QVector3D gyro)
 {
     QMatrix3x3 dcm(eye);
     QVector<float> c(3);
@@ -127,7 +130,7 @@ QMatrix3x3 GeometryEstimation::angle2dcm(QVector3D gyro)
     return dcm;
 }
 
-QQuaternion GeometryEstimation::gyro2quat(QVector3D gyro)
+QQuaternion SensorGeometry::gyro2quat(QVector3D gyro)
 {
     float theta = gyro.length();
     gyro.normalize();

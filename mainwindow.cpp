@@ -23,17 +23,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
     lineEditList->append(ui->lineEditMy),
     lineEditList->append(ui->lineEditMz);
 
-    QPair<QString, QString> pair;
-
     ui->tableCurrentConfig->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
     ui->tableCurrentConfig->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
 
     ui->btnStartStopSwitch->setText("Start");
 
+    /******************************************************************************************************************************************************/
+
     using namespace QtDataVisualization;
 
     Q3DSurface *graph = new Q3DSurface();
-    QWidget *container = QWidget::createWindowContainer(graph);
+    QWidget *dcontainer = QWidget::createWindowContainer(graph);
     //! [0]
 
     if (!graph->hasContext()) {
@@ -43,12 +43,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
     }
     else
     {
-        container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        container->setFocusPolicy(Qt::StrongFocus);
+        dcontainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        dcontainer->setFocusPolicy(Qt::StrongFocus);
 
-        QHBoxLayout *hLayout = new QHBoxLayout(ui->plot);
+        QHBoxLayout *hLayout = new QHBoxLayout(ui->drawingPlot);
         QVBoxLayout *vLayout = new QVBoxLayout();
-        hLayout->addWidget(container, 1);
+        hLayout->addWidget(dcontainer, 1);
         hLayout->addLayout(vLayout);
         vLayout->setAlignment(Qt::AlignTop);
     }
@@ -80,38 +80,47 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
 
     graph->addCustomItem(lsm9ds1obj);
 
-    QVariant a = "LSM9DS1";
-    lsm9ds1obj->setProperty("Name", a);
+    lsm9ds1obj->setObjectName("LSM9DS1");
 
-    QObjectList objlist = graph->children();
-    foreach (QObject *obj, objlist)
-    {
-        if(obj->property("Name").toString() == "LSM9DS1")
-        {
-            qDebug() << "Got it";
-        }
+    /******************************************************************************************************************************************************/
+    Q3DScatter *scatter = new Q3DScatter();
+    QWidget *ccontainer = QWidget::createWindowContainer(scatter);
+    if (!scatter->hasContext()) {
+        QMessageBox msgBox;
+        msgBox.setText("Couldn't initialize the OpenGL context.");
+        msgBox.exec();
     }
-    graph->setObjectName("graph");
+    else
+    {
+        ccontainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        ccontainer->setFocusPolicy(Qt::StrongFocus);
+
+        QHBoxLayout *hLayout = new QHBoxLayout(ui->calibrationPlot);
+        QVBoxLayout *vLayout = new QVBoxLayout();
+        hLayout->addWidget(ccontainer, 1);
+        hLayout->addLayout(vLayout);
+        vLayout->setAlignment(Qt::AlignTop);
+    }
+
+    QScatterDataArray *data = new QScatterDataArray;
+    *data << QVector3D(0.5f, 0.5f, 0.5f) << QVector3D(-0.3f, -0.5f, -0.4f) << QVector3D(0.0f, -0.3f, 0.2f);
+    scatter->addSeries(new QScatter3DSeries);
+    scatter->seriesList().at(0)->dataProxy()->resetArray(data);
+    scatter->show();
 }
 
-void MainWindow::SetNewPose(QQuaternion q)
+void MainWindow::setSensorPose(QQuaternion q, QString identifier)
 {
     //ui->openGLWidget->setRotation(rm);
-
-    QVector3D center(-12.5, 12.5, 0.0);
-    QVector3D u = q.vector();
-    float s = q.scalar();
-
-    // Do the math
-    QVector3D offset = 2.0f * QVector3D::dotProduct(u, center) * u
-          + (s*s - QVector3D::dotProduct(u, u)) * center
-          + 2.0f * s * QVector3D::crossProduct(u, center);
-
-    //lsm9ds1obj->setPosition(QVector3D(offset.x(), 0, offset.y()));
-    this->lsm9ds1obj->setRotation(q);
+    QString selectedIdentifier = QVariant::fromValue(ui->comboSelectPort->itemData(ui->comboSelectPort->currentIndex(), Qt::UserRole)).toString();
+    if (identifier == selectedIdentifier)
+    {
+        this->lsm9ds1obj->setRotation(q);
+        return;
+    }
 }
 
-void MainWindow::SetConfigurationTable(QList<Sensor*> sensors)
+void MainWindow::setConfigurationTable(QList<Sensor*> sensors)
 {
     QStringList horizontalHeaderLabels = {"Port", "Identifier", "Name", "Baudrate", "Status"};
 
@@ -131,14 +140,14 @@ void MainWindow::SetConfigurationTable(QList<Sensor*> sensors)
 
         QList<QString> columns;
 
-        columns.append(sensor->Portname());
-        columns.append(sensor->Identifier());
-        columns.append(sensor->Name());
-        columns.append(QString::number(sensor->Baudrate()));
-        columns.append(QString(QVariant::fromValue(sensor->CurrentStatus()).toString()));
+        columns.append(sensor->portname());
+        columns.append(sensor->identifier());
+        columns.append(sensor->name());
+        columns.append(QString::number(sensor->baudrate()));
+        columns.append(QString(QVariant::fromValue(sensor->currentStatus()).toString()));
 
-        ui->comboSelectPort->addItem(sensor->Name());
-        ui->comboSelectPort->setItemData(ui->comboSelectPort->count()-1, sensor->Identifier(), Qt::UserRole);
+        ui->comboSelectPort->addItem(sensor->name());
+        ui->comboSelectPort->setItemData(ui->comboSelectPort->count()-1, sensor->identifier(), Qt::UserRole);
 
         for (int col = 0; col < horizontalHeaderLabels.size(); col++)
         {
@@ -159,7 +168,7 @@ void MainWindow::SetConfigurationTable(QList<Sensor*> sensors)
     on_comboSelectPort_currentIndexChanged(ui->comboSelectPort->currentIndex());
 }
 
-void MainWindow::SetSensorStatus(Sensor::SensorStatus status, QString identifier)
+void MainWindow::setSensorStatus(Sensor::SensorStatus status, QString identifier)
 {
     int identifierColumn = whatColumnNumber("Identifier");
     int statusColumn = whatColumnNumber("Status");
@@ -177,7 +186,7 @@ void MainWindow::SetSensorStatus(Sensor::SensorStatus status, QString identifier
     }
 }
 
-void MainWindow::SetSensorData(qint16 *databuf, QString identifier)
+void MainWindow::setSensorData(qint16 *databuf, QString identifier)
 {
     QString selectedIdentifier = QVariant::fromValue(ui->comboSelectPort->itemData(ui->comboSelectPort->currentIndex(), Qt::UserRole)).toString();
     if (identifier == selectedIdentifier)
@@ -189,7 +198,7 @@ void MainWindow::SetSensorData(qint16 *databuf, QString identifier)
     }
 }
 
-void MainWindow::SetServiceData(Sensor::ServiceData data, QString identifier)
+void MainWindow::setServiceData(Sensor::ServiceData data, QString identifier)
 {
     QString selectedIdentifier = QVariant::fromValue(ui->comboSelectPort->itemData(ui->comboSelectPort->currentIndex(), Qt::UserRole)).toString();
     if (identifier == selectedIdentifier)

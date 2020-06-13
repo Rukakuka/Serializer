@@ -27,6 +27,8 @@
 #include <QObject>
 #include <QVector3D>
 
+#include <Q3DScatter>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class Mainwindow; }
 QT_END_NAMESPACE
@@ -49,11 +51,11 @@ private:
     QtDataVisualization::QCustom3DItem *lsm9ds1obj;
 
 public slots:
-    void SetSensorData(qint16 *databuf, QString identifier);
-    void SetServiceData(Sensor::ServiceData data, QString identifier);
-    void SetSensorStatus(Sensor::SensorStatus status, QString identifier);
-    void SetConfigurationTable(QList<Sensor*> sensors);
-    void SetNewPose(QQuaternion q);
+    void setSensorData(qint16 *databuf, QString identifier);
+    void setServiceData(Sensor::ServiceData data, QString identifier);
+    void setSensorStatus(Sensor::SensorStatus status, QString identifier);
+    void setConfigurationTable(QList<Sensor*> sensors);
+    void setSensorPose(QQuaternion q, QString identifier);
 
 private slots:
     void on_btnStartStopSwitch_clicked();

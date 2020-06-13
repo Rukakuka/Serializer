@@ -3,10 +3,11 @@
 
 Serializer::Serializer(MainWindow *mainwindow)
 {
-    QObject::connect(this, &Serializer::configurationChanged, mainwindow, &MainWindow::SetConfigurationTable);
-    QObject::connect(this, &Serializer::sensorDataChanged, mainwindow, &MainWindow::SetSensorData);
-    QObject::connect(this, &Serializer::serviceDataChanged, mainwindow, &MainWindow::SetServiceData);
-    QObject::connect(this, &Serializer::sensorStatusChanged, mainwindow, &MainWindow::SetSensorStatus);
+    QObject::connect(this, &Serializer::configurationChanged, mainwindow, &MainWindow::setConfigurationTable);
+    QObject::connect(this, &Serializer::sensorDataChanged, mainwindow, &MainWindow::setSensorData);
+    QObject::connect(this, &Serializer::serviceDataChanged, mainwindow, &MainWindow::setServiceData);
+    QObject::connect(this, &Serializer::sensorStatusChanged, mainwindow, &MainWindow::setSensorStatus);
+    QObject::connect(this, &Serializer::sensorPoseChanged, mainwindow, &MainWindow::setSensorPose);
 
     QObject::connect(mainwindow, &MainWindow::saveConfig, this, &Serializer::SaveConfig);
     QObject::connect(mainwindow, &MainWindow::loadConfig, this, &Serializer::LoadConfig);
@@ -33,17 +34,17 @@ void Serializer::Begin()
         if (validatePortName(portname))
         {
             Sensor *sensor = new Sensor(portname,
-                                        currentConfiguration.at(devNum)->Identifier(),
-                                        currentConfiguration.at(devNum)->Baudrate(),
-                                        currentConfiguration.at(devNum)->Name());
-            GeometryEstimation *ge = new GeometryEstimation();
+                                        currentConfiguration.at(devNum)->identifier(),
+                                        currentConfiguration.at(devNum)->baudrate(),
+                                        currentConfiguration.at(devNum)->name());
+            SensorGeometry *sg = new SensorGeometry(sensor->identifier());
             QThread *thread = new QThread();
             sensor->moveToThread(thread);
-            ge->moveToThread(thread);
+            sg->moveToThread(thread);
 
             // obj live & death connections
-            QObject::connect(sensor, &Sensor::threadTerminating, sensor, &Sensor::deleteLater);
             QObject::connect(thread, &QThread::finished, thread, &QThread::deleteLater);
+            QObject::connect(sensor, &Sensor::threadTerminating, sensor, &Sensor::deleteLater);            
             QObject::connect(this, &Serializer::stopSerial, sensor, &Sensor::terminateThread);
             QObject::connect(this, &Serializer::beginSerial, sensor, &Sensor::begin);
 
@@ -52,17 +53,17 @@ void Serializer::Begin()
             QObject::connect(sensor, &Sensor::serviceDataChanged, this, &Serializer::setServiceData);
             QObject::connect(sensor, &Sensor::statusChanged, this, &Serializer::setSensorStatus);
 
-            QObject::connect(sensor, &Sensor::sensorDataChanged, ge, &GeometryEstimation::GetPose);
-            QObject::connect(ge, &GeometryEstimation::poseChanged, mainwindow, &MainWindow::SetNewPose);
+            QObject::connect(sensor, &Sensor::sensorDataChanged, sg, &SensorGeometry::calculateNewPose);
+            QObject::connect(sg, &SensorGeometry::poseChanged, this, &Serializer::setSensorPose);
+            QObject::connect(sensor, &Sensor::threadTerminating, sg, &SensorGeometry::deleteLater);
 
-
-            qDebug() << "Sensor " << sensor->Name() << " added";
+            qDebug() << "Sensor " << sensor->name() << " added";
             currentWorkingSensors.append(sensor);
             delete currentConfiguration.at(devNum);
             currentConfiguration.replace(devNum, new Sensor(portname,
-                                                            currentConfiguration.at(devNum)->Identifier(),
-                                                            currentConfiguration.at(devNum)->Baudrate(),
-                                                            currentConfiguration.at(devNum)->Name()));
+                                                            currentConfiguration.at(devNum)->identifier(),
+                                                            currentConfiguration.at(devNum)->baudrate(),
+                                                            currentConfiguration.at(devNum)->name()));
             emit  configurationChanged(currentConfiguration);
             thread->start();
         }
@@ -70,9 +71,9 @@ void Serializer::Begin()
         {
             delete currentConfiguration.at(devNum);
             currentConfiguration.replace(devNum, new Sensor("",
-                                                            currentConfiguration.at(devNum)->Identifier(),
-                                                            currentConfiguration.at(devNum)->Baudrate(),
-                                                            currentConfiguration.at(devNum)->Name()));
+                                                            currentConfiguration.at(devNum)->identifier(),
+                                                            currentConfiguration.at(devNum)->baudrate(),
+                                                            currentConfiguration.at(devNum)->name()));
             emit  configurationChanged(currentConfiguration);
         }
     }
@@ -84,7 +85,7 @@ QString Serializer::whatConnectedPort(QList<QSerialPortInfo> portlist, Sensor* s
 {
     for (int portNum = 0; portNum < portlist.count(); portNum++)
     {
-        if (portlist[portNum].serialNumber() == sensor->Identifier())
+        if (portlist[portNum].serialNumber() == sensor->identifier())
         {
             return portlist[portNum].portName();
         }
@@ -128,11 +129,11 @@ void Serializer::setSensorData(qint16 *data, quint64 timestamp)
     Sensor* sensor = qobject_cast<Sensor*>(sender());
     if (sensor == nullptr )
         return;
-    if (sensor->CurrentStatus()== Sensor::TERMINATED)
+    if (sensor->currentStatus()== Sensor::TERMINATED)
         return;
     if (data == nullptr)
         return;
-    emit sensorDataChanged(data, sensor->Identifier());
+    emit sensorDataChanged(data, sensor->identifier());
 }
 
 void Serializer::setServiceData(Sensor::ServiceData data)
@@ -140,9 +141,9 @@ void Serializer::setServiceData(Sensor::ServiceData data)
     Sensor* sensor = qobject_cast<Sensor*>(sender());
     if (sensor == nullptr )
         return;
-    if (sensor->CurrentStatus()== Sensor::TERMINATED)
+    if (sensor->currentStatus()== Sensor::TERMINATED)
         return;
-    emit serviceDataChanged(data, sensor->Identifier());
+    emit serviceDataChanged(data, sensor->identifier());
 }
 
 void Serializer::setSensorStatus(Sensor::SensorStatus status)
@@ -150,7 +151,16 @@ void Serializer::setSensorStatus(Sensor::SensorStatus status)
     Sensor* sensor = qobject_cast<Sensor*>(sender());
     if (sensor == nullptr )
         return;
-    emit sensorStatusChanged(status, sensor->Identifier());
+    emit sensorStatusChanged(status, sensor->identifier());
+}
+
+void Serializer::setSensorPose(QQuaternion pose)
+{
+    SensorGeometry* sg = qobject_cast<SensorGeometry*>(sender());
+    if (sg == nullptr )
+        return;
+
+    emit sensorPoseChanged(pose, sg->identifier());
 }
 
 void Serializer::changeConfigurationByUser(QList<Sensor *> sensors)
@@ -175,9 +185,9 @@ void Serializer::SaveConfig(QString path)
         {
             xmlWriter.writeStartElement(childrenName);
             xmlWriter.writeAttribute(childrenAttributeName, QString::number(row));
-            xmlWriter.writeTextElement(chilrenFields[1], currentConfiguration.at(row)->Identifier());
-            xmlWriter.writeTextElement(chilrenFields[2], currentConfiguration.at(row)->Name());
-            xmlWriter.writeTextElement(chilrenFields[3], QString::number(currentConfiguration.at(row)->Baudrate()));
+            xmlWriter.writeTextElement(chilrenFields[1], currentConfiguration.at(row)->identifier());
+            xmlWriter.writeTextElement(chilrenFields[2], currentConfiguration.at(row)->name());
+            xmlWriter.writeTextElement(chilrenFields[3], QString::number(currentConfiguration.at(row)->baudrate()));
             xmlWriter.writeEndElement();
         }
         xmlWriter.writeEndDocument();
@@ -274,7 +284,7 @@ bool Serializer::addDevice(QXmlStreamReader* reader, QList<Sensor*>* configurati
                 bool duplicate = false;
                 foreach(Sensor *sensor, *configuration)
                 {
-                    if (sensor->Identifier() == str)
+                    if (sensor->identifier() == str)
                     {
                         duplicate = true;
                         break;

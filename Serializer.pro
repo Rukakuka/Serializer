@@ -17,17 +17,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     geometryengine.cpp \
-    geometryestimation.cpp \
     main.cpp \
     mainwindow.cpp \
     sensor.cpp \
+    sensorgeometry.cpp \
     serializer.cpp
 
 HEADERS += \
     geometryengine.h \
-    geometryestimation.h \
     mainwindow.h \
     sensor.h \
+    sensorgeometry.h \
     serializer.h
 
 FORMS += \

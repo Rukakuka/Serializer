@@ -189,7 +189,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="plot" native="true">
+       <widget class="QWidget" name="drawingPlot" native="true">
         <property name="geometry">
          <rect>
           <x>279</x>
@@ -274,6 +274,21 @@
         </property>
         <property name="text">
          <string>Remove device</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="calibration">
+       <attribute name="title">
+        <string>Calibration</string>
+       </attribute>
+       <widget class="QWidget" name="calibrationPlot" native="true">
+        <property name="geometry">
+         <rect>
+          <x>209</x>
+          <y>10</y>
+          <width>661</width>
+          <height>431</height>
+         </rect>
         </property>
        </widget>
       </widget>

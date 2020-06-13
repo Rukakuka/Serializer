@@ -6,13 +6,13 @@ Sensor::Sensor(QString portname, QString identifier, long baudrate, QString name
     qRegisterMetaType<Sensor::ServiceData>();
     qRegisterMetaType<qint16*>();
 
-    this->portname = portname;
-    this->identifier = identifier;
-    this->baudrate = baudrate;
-    this->name = name;
-    port = new QSerialPort(portname);
+    this->m_portname = portname;
+    this->m_identifier = identifier;
+    this->m_baudrate = baudrate;
+    this->m_name = name;
+    m_port = new QSerialPort(portname);
 
-    if (portname.contains("COM") && portname.mid(3).toInt() != 0)
+    if (portname.contains("COM") && portname.mid(3).toInt() > 0)
     {
         setCurrentStatus(Sensor::READY);
     }
@@ -24,38 +24,38 @@ Sensor::Sensor(QString portname, QString identifier, long baudrate, QString name
 
 void Sensor::begin()
 {
-    if (currentStatus == Sensor::READY)
+    if (m_currentStatus == Sensor::READY)
     {
-        port->setBaudRate(baudrate);
-        port->setPortName(portname);
-        port->setParity(QSerialPort::NoParity);
-        port->setDataBits(QSerialPort::Data8);
-        port->setFlowControl(QSerialPort::NoFlowControl);
+        m_port->setBaudRate(m_baudrate);
+        m_port->setPortName(m_portname);
+        m_port->setParity(QSerialPort::NoParity);
+        m_port->setDataBits(QSerialPort::Data8);
+        m_port->setFlowControl(QSerialPort::NoFlowControl);
 
-        if (port->open(QIODevice::ReadOnly))
+        if (m_port->open(QIODevice::ReadOnly))
         {
             receiveTimer = new QElapsedTimer();
             timeoutTimer = new QTimer();
 
-            port->clear(QSerialPort::AllDirections);
+            m_port->clear(QSerialPort::AllDirections);
 
-            QObject::connect(port,SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::UniqueConnection);
+            QObject::connect(m_port,SIGNAL(readyRead()), this, SLOT(readyRead()), Qt::UniqueConnection);
             QObject::connect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()), Qt::UniqueConnection);
 
             receiveTimer->start();
             timeoutTimer->start(timeout);
             setCurrentStatus(Sensor::BUSY);
-            qDebug() << "Sensor" << this->Name() << "initialized in thread" << QThread::currentThreadId();
+            qDebug() << "Sensor" << this->name() << "initialized in thread" << QThread::currentThreadId();
         }
         else
         {
             setCurrentStatus(Sensor::PORT_OPEN_ERR);
-            qDebug() << "Port" << this->name << "open error";
+            qDebug() << "Port" << this->m_name << "open error";
         }
     }
     else
     {        
-        qDebug() << "Port" << this->name << "cannot be initialized. Port status is" << currentStatus;
+        qDebug() << "Port" << this->m_name << "cannot be initialized. Port status is" << m_currentStatus;
     }
 }
 
@@ -63,17 +63,17 @@ void Sensor::terminateThread()
 {
     setCurrentStatus(Sensor::TERMINATED);
     this->stop();
-    qDebug() << "Thread" << QThread::currentThreadId() << "terminating. Port" << this->name << "closed.";
+    qDebug() << "Thread" << QThread::currentThreadId() << "terminating. Port" << this->m_name << "closed.";
     emit threadTerminating();
 }
 
 void Sensor::stop()
 {    
-    if (port->isOpen())
+    if (m_port->isOpen())
     {
-        QObject::disconnect(port,SIGNAL(readyRead()), this, SLOT(readyRead()));
+        QObject::disconnect(m_port,SIGNAL(readyRead()), this, SLOT(readyRead()));
         QObject::disconnect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()));
-        port->close();
+        m_port->close();
     }
     if (timeoutTimer != NULL)
     {
@@ -94,7 +94,7 @@ void Sensor::readyRead()
         timeoutTimer->start(timeout);
     }
 
-    rxbuf.append(port->readAll());
+    rxbuf.append(m_port->readAll());
     if (rxbuf.size() > messageSize) // 18 bytes of data + 4 bytes timestamp + "\r\n" terminator
     {
         while (rxbuf.indexOf(terminator) != -1)
@@ -113,7 +113,7 @@ void Sensor::readyRead()
                 QByteArray pack = rxbuf.mid(end-dataSize, dataSize);
                 if (pack.size() < dataSize)
                 {
-                    qDebug() << "\n\nWrong packet size = " << pack.size() << " bytes, in port " << this->name;
+                    qDebug() << "\n\nWrong packet size = " << pack.size() << " bytes, in port " << this->m_name;
                     setCurrentStatus(Sensor::PARSE_ERR);
                 }
                 else
@@ -132,8 +132,8 @@ void Sensor::readyRead()
         }
         if (rxbuf.size() > messageSize)
         {
-            qDebug() << "RxBuffer too large after processing with size = " << rxbuf.size() << " bytes, in port " << this->name;
-            port->clear(QSerialPort::AllDirections);
+            qDebug() << "RxBuffer too large after processing with size = " << rxbuf.size() << " bytes, in port " << this->m_name;
+            m_port->clear(QSerialPort::AllDirections);
         }
         if (cnt >= 1000)
         {
@@ -156,13 +156,13 @@ void Sensor::readyRead()
 void Sensor::readTimeout()
 {
     setCurrentStatus(Sensor::TIMEOUT_ERR);
-    qDebug() << "Serial read timeout. Port " << this->name << "closed.";
+    qDebug() << "Serial read timeout. Port " << this->m_name << "closed.";
     this->stop();
 }
 
 
 void Sensor::setCurrentStatus(Sensor::SensorStatus st)
 {
-    currentStatus = st;
+    m_currentStatus = st;
     emit statusChanged(st);
 }

@@ -39,13 +39,13 @@ public:
 
     explicit Sensor(QObject *parent = nullptr);
 
-    Sensor(QString portname, QString identifier, long baudrate, QString name);
+    Sensor(QString m_portname, QString m_identifier, long m_baudrate, QString m_name);
 
-    QString Identifier() { return identifier; }
-    QString Portname() { return portname; }
-    QString Name() { return name; }
-    long Baudrate() { return baudrate; }
-    SensorStatus CurrentStatus() { return currentStatus; }
+    QString identifier() { return m_identifier; }
+    QString portname() { return m_portname; }
+    QString name() { return m_name; }
+    long baudrate() { return m_baudrate; }
+    SensorStatus currentStatus() { return m_currentStatus; }
 
 private:
 
@@ -53,14 +53,16 @@ private:
     const long timeout = 100; // [ms]
     const int messageSize = 24;
 
-    long baudrate;
-    QString identifier;
-    QString portname;
-    QString name;
-    QSerialPort* port;
+    long m_baudrate;
+    QString m_identifier;
+    QString m_portname;
+    QString m_name;
+    QSerialPort* m_port;
+    SensorStatus m_currentStatus;
+
     QElapsedTimer* receiveTimer;
     QTimer* timeoutTimer;
-    SensorStatus currentStatus;
+
 
     /* readyRead slot vars */
     quint16 cnt = 0;
