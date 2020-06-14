@@ -28,35 +28,17 @@ void SensorGeometry::begin()
     gyroCalibCounter = 0;
     prevTimestamp = 0;
 
-    isReady = true;
+    ready = true;
 }
 
-void SensorGeometry::calibrateGyro()
+void SensorGeometry::calibrateGyro(qint16 *buf)
 {
-
-}
-
-
-void SensorGeometry::calculateNewPose(qint16 *buf, quint64 timestamp)
-{
-
-    if (!isReady)
-    {
-        begin();
-    }
-
-    magnetCalibrated = true; // TODO : calibration engine
-
-    if (buf == nullptr)
-        return;
-
     if (gyroCalibCounter <= 50)
     {
         GyrCor.setX(GyrCor.x() + (float)buf[3]);
         GyrCor.setY(GyrCor.y() + (float)buf[4]);
         GyrCor.setZ(GyrCor.z() + (float)buf[5]);
         gyroCalibCounter++;
-        prevTimestamp = timestamp;
         return;
     }
     else if(!gyroCalibrated)
@@ -66,9 +48,28 @@ void SensorGeometry::calculateNewPose(qint16 *buf, quint64 timestamp)
         GyrCor.setY(GyrCor.y()/50);
         GyrCor.setZ(GyrCor.z()/50);
     }
+}
 
-    QVector3D acc(buf[0], buf[1], buf[2]);
-    QVector3D mag(buf[5], buf[7], buf[8]);
+void SensorGeometry::calculateNewPose(qint16 *buf, quint64 timestamp)
+{
+    if (!ready)
+        begin();
+
+    if (buf == nullptr)
+        return;
+
+    magnetCalibrated = true;
+
+    if (!magnetCalibrated)
+        return;
+
+    if (!gyroCalibrated)
+    {
+        calibrateGyro(buf);
+        prevTimestamp = timestamp;
+        return;
+    }
+
     QVector3D gyr(buf[3], buf[4], buf[5]);
 
     gyr.setX(((0.0012207*(gyr.x() - GyrCor.x())) + gyrPrev.x())/2);
@@ -87,28 +88,60 @@ void SensorGeometry::calculateNewPose(qint16 *buf, quint64 timestamp)
 
     Qgyro = Qgyro * qspeed;
 
-    QVector3D Y = QVector3D::crossProduct(acc, mag);
-    QVector3D X = QVector3D::crossProduct(Y, acc);
+    QVector3D Z = QVector3D(buf[0], buf[1], buf[2]); // accelerometer axis
+    QVector3D Y = QVector3D::crossProduct(Z, QVector3D(buf[5], buf[7], buf[8])); // accelerometer + magnetometer axis
+    QVector3D X = QVector3D::crossProduct(Y, Z); // X axis perpendicular to both
 
-    Y.normalize();
     X.normalize();
-    acc.normalize();
+    Y.normalize();    
+    Z.normalize();
 
     if (!initialPoseCaptured)
     {
-        Qini = QQuaternion::fromAxes(X, Y, acc).inverted();
+        Qini = QQuaternion::fromAxes(X, Y, Z).inverted();
         initialPoseCaptured = true;
     }
-    QQuaternion qref = QQuaternion::fromAxes(X, Y, acc) * Qini;
+    QQuaternion qref = QQuaternion::fromAxes(X, Y, Z) * Qini;
 
     //Qgyro = QQuaternion::nlerp(qref, Qgyro, 0.999);
 
     emit poseChanged(Qgyro);
 }
 
+void SensorGeometry::calibrateMagnetometer(qint16 *buf, quint64 timestamp)
+{
+    if (buf == nullptr)
+        return;
+
+    if (!magnetCalibrationFinished)
+    {
+        QVector3D *point = new QVector3D(buf[6], buf[7], buf[8]);
+        magCalibrationData.append(point);
+        emit calibrationDataChanged(point);
+    }
+    else if (magnetCalibrationFinished)
+    {
+        if (magCalibrationData.count() > 0)
+        {
+            qDebug() << "calculate matrix and emit it to Serializer";
+            magnetCalibrated = true;
+        }
+        while (!magCalibrationData.isEmpty())
+        {
+            delete magCalibrationData.last();
+        }
+        magnetCalibrationFinished = false;
+    }
+}
+
+void SensorGeometry::stopMagnetometerCalibration()
+{
+    magnetCalibrationFinished = true;
+}
 
 QMatrix3x3 SensorGeometry::angle2dcm(QVector3D gyro)
 {
+    const float eye[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
     QMatrix3x3 dcm(eye);
     QVector<float> c(3);
     QVector<float> s(3);

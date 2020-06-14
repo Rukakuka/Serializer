@@ -13,10 +13,7 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     MainWindow mainwindow;
-    SensorGeometry ge;
     Serializer serializer(&mainwindow);
-
-
 
     mainwindow.show();
 

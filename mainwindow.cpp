@@ -27,97 +27,154 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
     ui->tableCurrentConfig->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
 
     ui->btnStartStopSwitch->setText("Start");
+    ui->btnStartStopCalibration->setText("Start calibration");
+    ui->btnStartStopCalibration->setEnabled(false);
 
-    /******************************************************************************************************************************************************/
+    initializeDrawingPlot();
+    initializeCalibrationPlot();
+}
 
+void MainWindow::initializeDrawingPlot()
+{
     using namespace QtDataVisualization;
 
-    Q3DSurface *graph = new Q3DSurface();
-    QWidget *dcontainer = QWidget::createWindowContainer(graph);
-    //! [0]
+    Q3DSurface *surface = new Q3DSurface();
+    QWidget *container = QWidget::createWindowContainer(surface);
 
-    if (!graph->hasContext()) {
+    if (!surface->hasContext()) {
         QMessageBox msgBox;
         msgBox.setText("Couldn't initialize the OpenGL context.");
         msgBox.exec();
+        return;
     }
     else
     {
-        dcontainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        dcontainer->setFocusPolicy(Qt::StrongFocus);
+        container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        container->setFocusPolicy(Qt::StrongFocus);
 
         QHBoxLayout *hLayout = new QHBoxLayout(ui->drawingPlot);
         QVBoxLayout *vLayout = new QVBoxLayout();
-        hLayout->addWidget(dcontainer, 1);
+        hLayout->addWidget(container, 1);
         hLayout->addLayout(vLayout);
         vLayout->setAlignment(Qt::AlignTop);
     }
 
-    graph->axisX()->setRange(-3.0f, 3.0f);
-    graph->axisY()->setRange(-3.0f, 3.0f);
-    graph->axisZ()->setRange(-3.0f, 3.0f);
+    surface->axisX()->setRange(-3.0f, 3.0f);
+    surface->axisY()->setRange(-3.0f, 3.0f);
+    surface->axisZ()->setRange(-3.0f, 3.0f);
 
-    graph->axisX()->setTitle(QStringLiteral("X"));
-    graph->axisY()->setTitle(QStringLiteral("Y"));
-    graph->axisZ()->setTitle(QStringLiteral("Z"));
+    surface->axisX()->setTitle(QStringLiteral("X"));
+    surface->axisY()->setTitle(QStringLiteral("Y"));
+    surface->axisZ()->setTitle(QStringLiteral("Z"));
 
-    graph->axisX()->setTitleVisible(true);
-    graph->axisY()->setTitleVisible(true);
-    graph->axisZ()->setTitleVisible(true);
+    surface->axisX()->setTitleVisible(true);
+    surface->axisY()->setTitleVisible(true);
+    surface->axisZ()->setTitleVisible(true);
 
     QImage color = QImage(2, 2, QImage::Format_RGB32);
     color.fill(Qt::red);
 
-    this->lsm9ds1obj = new QCustom3DItem();
-    lsm9ds1obj->setMeshFile("E:/QtProjects/Serializer/solids/brick.obj");
+    this->sensorObject = new QCustom3DItem();
+    sensorObject->setMeshFile("E:/QtProjects/Serializer/solids/brick.obj");
 
-    lsm9ds1obj->setScalingAbsolute(true);
-    lsm9ds1obj->setScaling(QVector3D(2, 2, 2));
-    lsm9ds1obj->setPositionAbsolute(true);
-    lsm9ds1obj->setPosition(QVector3D(0.0, 0.0, 0.0));
+    sensorObject->setScalingAbsolute(true);
+    sensorObject->setScaling(QVector3D(2, 2, 2));
+    sensorObject->setPositionAbsolute(true);
+    sensorObject->setPosition(QVector3D(0.0, 0.0, 0.0));
+    sensorObject->setTextureImage(color);
+    surface->addCustomItem(sensorObject);
+    surface->setShadowQuality(QAbstract3DGraph::ShadowQuality::ShadowQualityNone);
+}
 
-    lsm9ds1obj->setTextureImage(color);
+void MainWindow::initializeCalibrationPlot()
+{
+    using namespace QtDataVisualization;
 
-    graph->addCustomItem(lsm9ds1obj);
-
-    lsm9ds1obj->setObjectName("LSM9DS1");
-
-    /******************************************************************************************************************************************************/
-    Q3DScatter *scatter = new Q3DScatter();
-    QWidget *ccontainer = QWidget::createWindowContainer(scatter);
-    if (!scatter->hasContext()) {
+    calibScatter = new Q3DScatter();
+    QWidget *container = QWidget::createWindowContainer(calibScatter);
+    if (!calibScatter->hasContext()) {
         QMessageBox msgBox;
         msgBox.setText("Couldn't initialize the OpenGL context.");
         msgBox.exec();
     }
     else
     {
-        ccontainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        ccontainer->setFocusPolicy(Qt::StrongFocus);
+        container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        container->setFocusPolicy(Qt::StrongFocus);
 
         QHBoxLayout *hLayout = new QHBoxLayout(ui->calibrationPlot);
         QVBoxLayout *vLayout = new QVBoxLayout();
-        hLayout->addWidget(ccontainer, 1);
+        hLayout->addWidget(container, 1);
         hLayout->addLayout(vLayout);
         vLayout->setAlignment(Qt::AlignTop);
     }
 
-    QScatterDataArray *data = new QScatterDataArray;
-    *data << QVector3D(0.5f, 0.5f, 0.5f) << QVector3D(-0.3f, -0.5f, -0.4f) << QVector3D(0.0f, -0.3f, 0.2f);
-    scatter->addSeries(new QScatter3DSeries);
-    scatter->seriesList().at(0)->dataProxy()->resetArray(data);
-    scatter->show();
+    QScatter3DSeries *series = new QScatter3DSeries();
+    series->setBaseColor(QColor(0,0,0));
+    series->setMeshSmooth(false);
+    calibScatter->addSeries(series);
+
+    calibScatter->axisX()->setTitle(QStringLiteral("X"));
+    calibScatter->axisY()->setTitle(QStringLiteral("Y"));
+    calibScatter->axisZ()->setTitle(QStringLiteral("Z"));
+
+    calibScatter->axisX()->setTitleVisible(true);
+    calibScatter->axisY()->setTitleVisible(true);
+    calibScatter->axisZ()->setTitleVisible(true);
+    calibScatter->setShadowQuality(QAbstract3DGraph::ShadowQuality::ShadowQualityNone);
+
+    calibScatter->setReflection(false);
+    calibScatter->setSurfaceType(QSurface::SurfaceType::OpenGLSurface);
 }
 
 void MainWindow::setSensorPose(QQuaternion q, QString identifier)
 {
     //ui->openGLWidget->setRotation(rm);
+
     QString selectedIdentifier = QVariant::fromValue(ui->comboSelectPort->itemData(ui->comboSelectPort->currentIndex(), Qt::UserRole)).toString();
     if (identifier == selectedIdentifier)
     {
-        this->lsm9ds1obj->setRotation(q);
+        this->sensorObject->setRotation(q);
         return;
     }
+}
+
+void MainWindow::setCalibrationData(QVector3D* point, QString identifier)
+{
+    if (calibScatter->seriesList().count() == 0)
+    {
+        qDebug() << "No container found for calibration data";
+        return;
+    }
+    calibScatter->seriesList().at(0)->dataProxy()->addItem(QtDataVisualization::QScatterDataItem(*point));
+}
+
+void MainWindow::on_btnStartStopCalibration_clicked()
+{
+    if (ui->btnStartStopCalibration->text() == "Start calibration")
+    {
+        ui->btnStartStopCalibration->setText("Stop calibration");
+        QString selectedIdentifier = QVariant::fromValue(ui->comboSelectPortCalib->itemData(ui->comboSelectPortCalib->currentIndex(), Qt::UserRole)).toString();
+        ui->comboSelectPortCalib->setEnabled(false);
+        emit beginCalibration(selectedIdentifier);
+    }
+    else
+    {
+        ui->btnStartStopCalibration->setText("Start calibration");
+        QString selectedIdentifier = QVariant::fromValue(ui->comboSelectPortCalib->itemData(ui->comboSelectPortCalib->currentIndex(), Qt::UserRole)).toString();
+        ui->comboSelectPortCalib->setEnabled(true);
+        emit stopCalibration(selectedIdentifier);
+    }
+}
+
+void MainWindow::on_btnSaveCalibration_clicked()
+{
+    emit saveCalibration("");
+}
+
+void MainWindow::on_btnLoadCalibration_clicked()
+{
+    emit loadCalibration("");
 }
 
 void MainWindow::setConfigurationTable(QList<Sensor*> sensors)
@@ -132,6 +189,7 @@ void MainWindow::setConfigurationTable(QList<Sensor*> sensors)
 
     int row = 0;
     ui->comboSelectPort->clear();
+    ui->comboSelectPortCalib->clear();
 
     foreach (Sensor *sensor, sensors)
     {
@@ -148,6 +206,9 @@ void MainWindow::setConfigurationTable(QList<Sensor*> sensors)
 
         ui->comboSelectPort->addItem(sensor->name());
         ui->comboSelectPort->setItemData(ui->comboSelectPort->count()-1, sensor->identifier(), Qt::UserRole);
+
+        ui->comboSelectPortCalib->addItem(sensor->name());
+        ui->comboSelectPortCalib->setItemData(ui->comboSelectPortCalib->count()-1, sensor->identifier(), Qt::UserRole);
 
         for (int col = 0; col < horizontalHeaderLabels.size(); col++)
         {
@@ -216,6 +277,11 @@ void MainWindow::on_btnStartStopSwitch_clicked()
     {
         ui->btnLoadConfig->setEnabled(false);
         ui->btnSaveConfig->setEnabled(false);
+        ui->btnLoadCalibration->setEnabled(false);
+        ui->btnSaveCalibration->setEnabled(false);
+
+        ui->btnStartStopCalibration->setEnabled(true);
+
         ui->btnStartStopSwitch->setText("Stop");
         emit beginSerial();
     }
@@ -223,6 +289,11 @@ void MainWindow::on_btnStartStopSwitch_clicked()
     {
         ui->btnLoadConfig->setEnabled(true);
         ui->btnSaveConfig->setEnabled(true);
+        ui->btnLoadCalibration->setEnabled(true);
+        ui->btnSaveCalibration->setEnabled(true);
+
+        ui->btnStartStopCalibration->setEnabled(false);
+
         ui->btnStartStopSwitch->setText("Start");
         emit stopSerial();
     }
@@ -259,11 +330,15 @@ QList<Sensor *> MainWindow::formatConfig(QTableWidget* table)
     {
         for (int row = 0; row < ui->tableCurrentConfig->rowCount(); row++)
         {
+
             if (table->item(row, identifierColumn)->text().size() == 20 &&
                     table->item(row, baudrateColumn)->text().toLong() > 0 &&
                     table->item(row, nameColumn)->text().size() > 0)
             {
-
+                if (table->item(row, portColumn) == nullptr)
+                {
+                    table->setItem(row, 0, new QTableWidgetItem());
+                }
                 Sensor *sensor = new Sensor(table->item(row, portColumn)->text(),
                                             table->item(row, identifierColumn)->text(),
                                             table->item(row, baudrateColumn)->text().toLong(),
@@ -328,3 +403,4 @@ int MainWindow::whatColumnNumber(QString name)
     }
     return -1;
 }
+

@@ -28,6 +28,7 @@
 #include "sensor.h"
 #include "mainwindow.h"
 #include "sensorgeometry.h"
+#include "filemanager.h"
 
 class Serializer : public QObject
 {
@@ -41,26 +42,20 @@ public:
 public slots:
     void Begin();
     void Stop();
-    void SaveConfig(QString path);
-    void LoadConfig(QString path);
+    void SaveConfiguration(QString path);
+    void LoadConfiguration(QString path);
     void changeConfigurationByUser(QList<Sensor*> sensors);
+    void BeginCalibration(QString identifier);
+    void StopCalibration(QString identifier);
+    void SaveCalibration(QString path);
+    void LoadCalibration(QString path);
 
 private:
-    bool addDevice(QXmlStreamReader *reader, QList<Sensor*>* configuration);
-    void addDeviceConfig(QXmlStreamReader *reader, QList<Sensor*>* configuration, int *deviceCount);
-    void parseConfig(QXmlStreamReader *reader, QList<Sensor*>* configuration);
     QString whatConnectedPort(QList<QSerialPortInfo> portlist, Sensor *sensor);
-
     QList<Sensor*> currentConfiguration;
     QList<Sensor*> currentWorkingSensors;
-    MainWindow *mainwindow;
+    QList<SensorGeometry*> currentWorkingSensorGeometries;
 
-    /* *** XML config file parameters *** */
-    const QString defaultConfigurationPath = "E:/QtProjects/Serializer/configuration.xml";
-    const QString rootName = "Configuration";
-    const QString childrenName = "Device";
-    const QString childrenAttributeName = "count";
-    const QStringList chilrenFields = {"Port", "Identifier", "Name", "Baudrate", "Status"};    
     bool validatePortName(QString portname);
 
 private slots:
@@ -68,6 +63,7 @@ private slots:
     void setServiceData(Sensor::ServiceData data);
     void setSensorStatus(Sensor::SensorStatus status);
     void setSensorPose(QQuaternion pose);
+    void setCalibrationData(QVector3D *point);
 
 signals:
     void stopSerial();
@@ -77,6 +73,10 @@ signals:
     void serviceDataChanged(Sensor::ServiceData data, QString identifier);
     void sensorStatusChanged(Sensor::SensorStatus status, QString identifier);
     void sensorPoseChanged(QQuaternion pose, QString identifier);
+    void sensorCalibrationDataChanged(QVector3D* point, QString identifier);
+    void stopCalibration(QString identifier);
+    void beginCalibration(QString identifier);
+    void stopMagnetometerCalibration();
 };
 
 #endif

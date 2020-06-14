@@ -8,14 +8,19 @@ Serializer::Serializer(MainWindow *mainwindow)
     QObject::connect(this, &Serializer::serviceDataChanged, mainwindow, &MainWindow::setServiceData);
     QObject::connect(this, &Serializer::sensorStatusChanged, mainwindow, &MainWindow::setSensorStatus);
     QObject::connect(this, &Serializer::sensorPoseChanged, mainwindow, &MainWindow::setSensorPose);
+    QObject::connect(this, &Serializer::sensorCalibrationDataChanged, mainwindow, &MainWindow::setCalibrationData);
 
-    QObject::connect(mainwindow, &MainWindow::saveConfig, this, &Serializer::SaveConfig);
-    QObject::connect(mainwindow, &MainWindow::loadConfig, this, &Serializer::LoadConfig);
+    QObject::connect(mainwindow, &MainWindow::saveConfig, this, &Serializer::SaveConfiguration);
+    QObject::connect(mainwindow, &MainWindow::loadConfig, this, &Serializer::LoadConfiguration);
     QObject::connect(mainwindow, &MainWindow::beginSerial, this, &Serializer::Begin);
     QObject::connect(mainwindow, &MainWindow::stopSerial, this, &Serializer::Stop);
     QObject::connect(mainwindow, &MainWindow::configurationChangedByUser, this, &Serializer::changeConfigurationByUser);
 
-    this->mainwindow = mainwindow;
+    QObject::connect(mainwindow, &MainWindow::saveCalibration, this, &Serializer::SaveCalibration);
+    QObject::connect(mainwindow, &MainWindow::loadCalibration, this, &Serializer::LoadCalibration);
+    QObject::connect(mainwindow, &MainWindow::beginCalibration, this, &Serializer::BeginCalibration);
+    QObject::connect(mainwindow, &MainWindow::stopCalibration, this, &Serializer::StopCalibration);
+
 }
 
 void Serializer::Begin()
@@ -23,7 +28,7 @@ void Serializer::Begin()
     QList<QSerialPortInfo> portlist = QSerialPortInfo::availablePorts();
     if (currentConfiguration.isEmpty())
     {
-        LoadConfig(defaultConfigurationPath);
+        LoadConfiguration("E:/QtProjects/Serializer/configuration.xml");
     }
     currentWorkingSensors.clear();
 
@@ -47,18 +52,19 @@ void Serializer::Begin()
             QObject::connect(sensor, &Sensor::threadTerminating, sensor, &Sensor::deleteLater);            
             QObject::connect(this, &Serializer::stopSerial, sensor, &Sensor::terminateThread);
             QObject::connect(this, &Serializer::beginSerial, sensor, &Sensor::begin);
+            QObject::connect(sensor, &Sensor::threadTerminating, sg, &SensorGeometry::deleteLater);
 
             // outcoming data connections
             QObject::connect(sensor, &Sensor::sensorDataChanged, this, &Serializer::setSensorData);
             QObject::connect(sensor, &Sensor::serviceDataChanged, this, &Serializer::setServiceData);
             QObject::connect(sensor, &Sensor::statusChanged, this, &Serializer::setSensorStatus);
-
             QObject::connect(sensor, &Sensor::sensorDataChanged, sg, &SensorGeometry::calculateNewPose);
             QObject::connect(sg, &SensorGeometry::poseChanged, this, &Serializer::setSensorPose);
-            QObject::connect(sensor, &Sensor::threadTerminating, sg, &SensorGeometry::deleteLater);
 
             qDebug() << "Sensor " << sensor->name() << " added";
             currentWorkingSensors.append(sensor);
+            currentWorkingSensorGeometries.append(sg);
+
             delete currentConfiguration.at(devNum);
             currentConfiguration.replace(devNum, new Sensor(portname,
                                                             currentConfiguration.at(devNum)->identifier(),
@@ -95,7 +101,7 @@ QString Serializer::whatConnectedPort(QList<QSerialPortInfo> portlist, Sensor* s
 
 bool Serializer::validatePortName(QString portname)
 {
-    if (portname.contains("COM") && portname.mid(3).toInt() > 0)
+    if (portname.startsWith("COM", Qt::CaseSensitive) && portname.mid(3).toInt() > 0)
     {
         return true;
     }
@@ -107,7 +113,7 @@ bool Serializer::validatePortName(QString portname)
 
 void Serializer::Stop()
 {
-    for (int i = 0; i < currentWorkingSensors.size(); i++) // do sensor connections
+    for (int i = 0; i < currentWorkingSensors.size(); i++)
     {
         QObject::disconnect(currentWorkingSensors.at(i), &Sensor::sensorDataChanged, this, &Serializer::setSensorData);
         QObject::disconnect(currentWorkingSensors.at(i), &Sensor::serviceDataChanged, this, &Serializer::setServiceData);
@@ -122,6 +128,7 @@ void Serializer::Stop()
         QObject::disconnect(this, &Serializer::beginSerial, currentWorkingSensors.at(i), &Sensor::begin);
     }
     currentWorkingSensors.clear();
+    currentWorkingSensorGeometries.clear();
 }
 
 void Serializer::setSensorData(qint16 *data, quint64 timestamp)
@@ -163,35 +170,25 @@ void Serializer::setSensorPose(QQuaternion pose)
     emit sensorPoseChanged(pose, sg->identifier());
 }
 
+void Serializer::setCalibrationData(QVector3D* point)
+{
+    SensorGeometry* sg = qobject_cast<SensorGeometry*>(sender());
+    if (sg == nullptr )
+        return;
+    emit sensorCalibrationDataChanged(point, sg->identifier());
+}
+
 void Serializer::changeConfigurationByUser(QList<Sensor *> sensors)
 {
     currentConfiguration = sensors;
     emit configurationChanged(currentConfiguration); //back-to-back configuration to mainwindow to apply changes in other elements e.g. combobox etc.
 }
 
-void Serializer::SaveConfig(QString path)
+void Serializer::SaveConfiguration(QString path)
 {
-    qDebug() << "Saving config at" << path << "...";
-    QFile file(path);
-    if (file.open(QIODevice::WriteOnly))
+    qDebug() << "Saving serial config at" << path << "...";
+    if (FileManager::Save(path, &currentConfiguration))
     {
-        QXmlStreamWriter xmlWriter(&file);
-        xmlWriter.setAutoFormatting(true);
-
-        xmlWriter.writeStartDocument();
-        xmlWriter.writeStartElement(rootName);
-
-        for (int row = 0; row < currentConfiguration.count(); row++)
-        {
-            xmlWriter.writeStartElement(childrenName);
-            xmlWriter.writeAttribute(childrenAttributeName, QString::number(row));
-            xmlWriter.writeTextElement(chilrenFields[1], currentConfiguration.at(row)->identifier());
-            xmlWriter.writeTextElement(chilrenFields[2], currentConfiguration.at(row)->name());
-            xmlWriter.writeTextElement(chilrenFields[3], QString::number(currentConfiguration.at(row)->baudrate()));
-            xmlWriter.writeEndElement();
-        }
-        xmlWriter.writeEndDocument();
-        file.close();
         qDebug() << "Successfully saved config";
     }
     else
@@ -200,140 +197,98 @@ void Serializer::SaveConfig(QString path)
     }
 }
 
-void Serializer::LoadConfig(QString path)
+void Serializer::LoadConfiguration(QString path)
 {
-    QFile file(path);
-
-    if (!file.open(QIODevice::ReadOnly))
+    if (FileManager::Load(path, &currentConfiguration))
     {
-        qDebug() << "Cannot open configuration for read";
+        emit configurationChanged(currentConfiguration);
     }
     else
     {
-        currentConfiguration.clear();
-        QXmlStreamReader reader(&file);
-        parseConfig(&reader, &currentConfiguration);
-        emit configurationChanged(currentConfiguration);
-        file.close();
+        qDebug() << "Cannot open configuration file  for read";
     }
 }
 
-void Serializer::parseConfig(QXmlStreamReader* reader, QList<Sensor*>* configuration)
+void Serializer::SaveCalibration(QString path)
 {
-    qDebug() << "\nParsing configuration...";
-    int deviceCount = -1;
-    while (!reader->atEnd() && !reader->hasError())
+    qDebug() << "Dummy : save calibration at" << path;
+}
+
+void Serializer::LoadCalibration(QString path)
+{
+    qDebug() << "Dummy : load calibration from" << path;
+}
+
+void Serializer::BeginCalibration(QString identifier)
+{
+    SensorGeometry *sg;
+    foreach(SensorGeometry* geometry, currentWorkingSensorGeometries)
     {
-        QXmlStreamReader::TokenType token = reader->readNext();
-        if (token == QXmlStreamReader::StartDocument)
+        if (geometry->identifier() == identifier)
         {
-            continue;
-        }
-        if (token == QXmlStreamReader::StartElement)
-        {
-            if (reader->name() == rootName)
-                continue;
-            if (reader->name() == childrenName)
-                addDeviceConfig(reader, configuration, &deviceCount);
+            sg = geometry;
+            break;
         }
     }
-    qDebug() << "Parsing completed.";
-}
-
-void Serializer::addDeviceConfig(QXmlStreamReader* reader, QList<Sensor*>* configuration, int *deviceCount)
-{
-    if (reader->tokenType() != QXmlStreamReader::StartElement && reader->name() == childrenName)
+    if (sg == nullptr)
+    {
+        qDebug() << "No SensorGeometry object found. Calibration start cancelled";
         return;
-    QXmlStreamAttributes attributes = reader->attributes();
-    if (attributes.hasAttribute(childrenAttributeName))
+    }
+    Sensor *sensor;
+    foreach(Sensor* s, currentWorkingSensors)
     {
-        int num = attributes.value(childrenAttributeName).toInt();
-        if (*deviceCount+1 == num)
+        if (s->identifier() == sg->identifier())
         {
-            *deviceCount = num;
-            reader->readNext();
-            if (!addDevice(reader, configuration))
-            {
-                qDebug() << "Skip device at position" << num << " - error parsing fields.";
-            }
-        }
-        else
-        {
-            qDebug() << "Skip device at position" << num << " - bad index.";
-            do
-            {
-                reader->readNext();
-            } while (reader->tokenType() != QXmlStreamReader::StartElement && reader->name() != childrenName && !reader->atEnd());
+            sensor = s;
+            break;
         }
     }
+    if (sensor == nullptr)
+    {
+        qDebug() << "No Sensor object found. Calibration start cancelled";
+        return;
+    }
+    qDebug() << "Magnetometer calibration begin for" << sensor->name();
+
+    QObject::connect(sensor, &Sensor::sensorDataChanged, sg, &SensorGeometry::calibrateMagnetometer);
+    QObject::connect(sg, &SensorGeometry::calibrationDataChanged, this, &Serializer::setCalibrationData);
+    QObject::connect(this, &Serializer::stopMagnetometerCalibration, sg, &SensorGeometry::stopMagnetometerCalibration);
 }
 
-bool Serializer::addDevice(QXmlStreamReader* reader, QList<Sensor*>* configuration)
+void Serializer::StopCalibration(QString identifier)
 {
-    QString identifier = "";
-    QString name = "";
-    long baudrate = -1;
-
-    while (reader->tokenType() != QXmlStreamReader::EndElement && reader->name() != childrenName)
+    SensorGeometry *sg;
+    foreach(SensorGeometry* geometry, currentWorkingSensorGeometries)
     {
-        if (reader->tokenType() == QXmlStreamReader::StartElement)
+        if (geometry->identifier() == identifier)
         {
-            if(reader->name() == "Identifier")
-            {
-                QString str = reader->readElementText();
-                bool duplicate = false;
-                foreach(Sensor *sensor, *configuration)
-                {
-                    if (sensor->identifier() == str)
-                    {
-                        duplicate = true;
-                        break;
-                    }
-                }
-                if (!duplicate)
-                    identifier = str;
-                else
-                    return false;
-            }
-            else if(reader->name() == "Name")
-            {
-                name = reader->readElementText();
-                if (name.isNull() || name.isEmpty())
-                    name = "NullName";
-            }
-            else if(reader->name() == "Baudrate")
-            {
-                long num = reader->readElementText().toLong();
-                if (num > 0)
-                    baudrate = num;
-            }
-            else if(reader->name() == "Port")
-            {
-                reader->readElementText();
-            }
-            else if(reader->name() == "Status")
-            {
-                reader->readElementText();
-            }
+            sg = geometry;
+            break;
         }
-        reader->readNext();
     }
-
-    if (!identifier.isEmpty() && baudrate > 0)
+    if (sg == nullptr)
     {
-        QString port;
-        QList<QSerialPortInfo> portlist = QSerialPortInfo::availablePorts();
-        for (int portNum = 0; portNum < portlist.count(); portNum++)
-        {
-            if (portlist[portNum].serialNumber() == identifier)
-            {
-                port = portlist[portNum].portName();
-                break;
-            }
-        }
-        Sensor* s = new Sensor(port, identifier, baudrate, name);
-        configuration->append(s);
-        return true;
+        qDebug() << "No SensorGeometry object found. Calibration stop cancelled";
+        return;
     }
-    return false;
+    Sensor *sensor;
+    foreach(Sensor* s, currentWorkingSensors)
+    {
+        if (s->identifier() == sg->identifier())
+        {
+            sensor = s;
+            break;
+        }
+    }
+    if (sensor == nullptr)
+    {
+        qDebug() << "No Sensor object found. Calibration stop cancelled";
+        return;
+    }
+    emit stopMagnetometerCalibration();
+    QObject::disconnect(sensor, &Sensor::sensorDataChanged, sg, &SensorGeometry::calibrateMagnetometer);
+    QObject::disconnect(sg, &SensorGeometry::calibrationDataChanged, this, &Serializer::setCalibrationData);
+    QObject::disconnect(this, &Serializer::stopMagnetometerCalibration, sg, &SensorGeometry::stopMagnetometerCalibration);
+    qDebug() << "Magnetormter calibration done for" << sensor->name();
 }
