@@ -3,7 +3,7 @@
     <Device count="0">
         <Identifier>9573535333235110F091</Identifier>
         <Name>LSM9DS1</Name>
-        <Baudrate>2500000</Baudrate>
+        <Baudrate>3000000</Baudrate>
     </Device>
     <Device count="1">
         <Identifier>55737303030351202252</Identifier>

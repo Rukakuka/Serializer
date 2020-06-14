@@ -32,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
 
     initializeDrawingPlot();
     initializeCalibrationPlot();
+    ui->lineEditCalibrationCounter->setText("0");
 }
 
 void MainWindow::initializeDrawingPlot()
@@ -112,6 +113,7 @@ void MainWindow::initializeCalibrationPlot()
     QScatter3DSeries *series = new QScatter3DSeries();
     series->setBaseColor(QColor(0,0,0));
     series->setMeshSmooth(false);
+    series->setMesh(QSurface3DSeries::MeshPoint);
     calibScatter->addSeries(series);
 
     calibScatter->axisX()->setTitle(QStringLiteral("X"));
@@ -141,18 +143,21 @@ void MainWindow::setSensorPose(QQuaternion q, QString identifier)
 
 void MainWindow::setCalibrationData(QVector3D* point, QString identifier)
 {
+    uint counter = ui->lineEditCalibrationCounter->text().toUInt();
     if (calibScatter->seriesList().count() == 0)
     {
         qDebug() << "No container found for calibration data";
         return;
     }
     calibScatter->seriesList().at(0)->dataProxy()->addItem(QtDataVisualization::QScatterDataItem(*point));
+    ui->lineEditCalibrationCounter->setText(QString::number(++counter));
 }
 
 void MainWindow::on_btnStartStopCalibration_clicked()
 {
     if (ui->btnStartStopCalibration->text() == "Start calibration")
     {
+        ui->lineEditCalibrationCounter->setText("0");
         ui->btnStartStopCalibration->setText("Stop calibration");
         QString selectedIdentifier = QVariant::fromValue(ui->comboSelectPortCalib->itemData(ui->comboSelectPortCalib->currentIndex(), Qt::UserRole)).toString();
         ui->comboSelectPortCalib->setEnabled(false);

@@ -28,6 +28,13 @@ void SensorGeometry::begin()
     gyroCalibCounter = 0;
     prevTimestamp = 0;
 
+    magCalibrationData.max.setX(INT32_MIN);
+    magCalibrationData.max.setY(INT32_MIN);
+    magCalibrationData.max.setZ(INT32_MIN);
+    magCalibrationData.min.setX(INT32_MAX);
+    magCalibrationData.min.setY(INT32_MAX);
+    magCalibrationData.min.setZ(INT32_MAX);
+
     ready = true;
 }
 
@@ -116,28 +123,115 @@ void SensorGeometry::calibrateMagnetometer(qint16 *buf, quint64 timestamp)
     if (!magnetCalibrationFinished)
     {
         QVector3D *point = new QVector3D(buf[6], buf[7], buf[8]);
-        magCalibrationData.append(point);
-        emit calibrationDataChanged(point);
-    }
-    else if (magnetCalibrationFinished)
-    {
-        if (magCalibrationData.count() > 0)
+        magCalibrationData.rawData.append(point);
+        setMinMax(point);
+
+        emit sendSingleMagnetMeasure(point);
+
+        if (magCalibrationData.rawData.count() > 50000) // prevent UI lag too many points to render
         {
-            qDebug() << "calculate matrix and emit it to Serializer";
-            magnetCalibrated = true;
+            stopMagnetometerCalibration();
         }
-        while (!magCalibrationData.isEmpty())
-        {
-            delete magCalibrationData.last();
-        }
-        magnetCalibrationFinished = false;
     }
 }
 
 void SensorGeometry::stopMagnetometerCalibration()
 {
     magnetCalibrationFinished = true;
+
+    // TODO : save to txt? [mx my mz]
+
+    if (magCalibrationData.rawData.count() > 0 &&
+            magCalibrationData.min.x() < magCalibrationData.max.x() &&
+            magCalibrationData.min.y() < magCalibrationData.max.y() &&
+            magCalibrationData.min.z() < magCalibrationData.max.z())
+    {
+        qDebug() << "calculate matrix and emit it to Serializer";
+
+        QVector3D bias = getBias();
+        magCalibrationData.bias = bias;
+
+        QMatrix3x3 softIron = getSoftIronMatrix(bias);
+        getHardIron(softIron, bias);
+        qDebug() << magCalibrationData.bias;
+        qDebug() << magCalibrationData.matrix;
+
+        magnetCalibrated = true;
+    }
+    else
+    {
+        qDebug() << "Failed to calibrate magnetometer : bad raw data";
+    }
+
+    qDebug() << "10";
+    /*
+    while (!magCalibrationData.rawData.isEmpty())
+    {
+        delete magCalibrationData.rawData.last();
+    }
+    */
+    magnetCalibrationFinished = false;
 }
+
+QVector3D SensorGeometry::getBias()
+{
+    QVector3D bias;
+    bias.setX((magCalibrationData.max.x() + magCalibrationData.min.x())/2);
+    bias.setY((magCalibrationData.max.y() + magCalibrationData.min.y())/2);
+    bias.setZ((magCalibrationData.max.z() + magCalibrationData.min.z())/2);
+    return bias;
+}
+
+QMatrix3x3 SensorGeometry::getSoftIronMatrix(QVector3D bias)
+{
+    float alpha = qAsin((magCalibrationData.max.y() - bias.y()) / qSqrt(qPow(magCalibrationData.max.x() - bias.x(), 2) + qPow(magCalibrationData.max.y() - bias.y(), 2)));
+    float beta = qAsin((magCalibrationData.max.z() - bias.z()) / qSqrt(qPow(magCalibrationData.max.y() - bias.y(), 2) + qPow(magCalibrationData.max.z() - bias.z(), 2)));
+    float gamma = qAsin((magCalibrationData.max.x() - bias.x()) / qSqrt(qPow(magCalibrationData.max.z() - bias.z(), 2) + qPow(magCalibrationData.max.x() - bias.x(), 2)));
+    return QQuaternion::fromEulerAngles(beta, alpha, gamma).toRotationMatrix();
+}
+
+void SensorGeometry::getHardIron(QMatrix3x3 softIron, QVector3D bias)
+{
+    for (int i = 0; i < magCalibrationData.rawData.count(); i++)
+    {
+        QVector3D point = rotate(*magCalibrationData.rawData.at(i), softIron);
+        setMinMax(&point);
+    }
+
+    const float fnorm = 1000; // norm of magnetic field
+    float k[] = { (magCalibrationData.max.x() - bias.x())/ fnorm,
+                   (magCalibrationData.max.y() - bias.y())/ fnorm,
+                   (magCalibrationData.max.z() - bias.z())/ fnorm };
+
+    for (int row = 0; row < 3; row++)
+        for (int col = 0; col <3; col++)
+            magCalibrationData.matrix(row,col) = softIron(row,col)*k[row];
+}
+
+void SensorGeometry::setMinMax(QVector3D *point)
+{
+    if (point->x() > magCalibrationData.max.x())
+        magCalibrationData.max.setX(point->x());
+    if (point->y() > magCalibrationData.max.y())
+        magCalibrationData.max.setY(point->y());
+    if (point->z() > magCalibrationData.max.z())
+        magCalibrationData.max.setZ(point->z());
+
+    if (point->x() < magCalibrationData.min.x())
+        magCalibrationData.min.setX(point->x());
+    if (point->y() < magCalibrationData.min.y())
+        magCalibrationData.min.setY(point->y());
+    if (point->z() < magCalibrationData.min.z())
+        magCalibrationData.min.setZ(point->z());
+}
+
+QVector3D SensorGeometry::rotate(QVector3D point, QMatrix3x3 rm)
+{
+    return QVector3D(point.x()*rm(0,0) + point.x()*rm(1,0) + + point.x()*rm(2,0),
+                     point.y()*rm(0,1) + point.y()*rm(1,1) + + point.y()*rm(2,1),
+                     point.z()*rm(0,2) + point.z()*rm(1,2) + + point.z()*rm(2,2));
+}
+
 
 QMatrix3x3 SensorGeometry::angle2dcm(QVector3D gyro)
 {
