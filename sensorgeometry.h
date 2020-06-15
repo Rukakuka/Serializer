@@ -19,10 +19,6 @@ public:
 
     SensorGeometry(QString identifier);
     QString identifier() { return m_identifier; }
-
-private:
-    explicit SensorGeometry(QObject *parent = nullptr);
-
     struct CalibrationData
     {
         QList<QVector3D*> rawData;
@@ -30,15 +26,17 @@ private:
         QVector3D min;
         QMatrix3x3 matrix;
         QVector3D bias;
-    } magCalibrationData;
+    };
+
+private:
+    explicit SensorGeometry(QObject *parent = nullptr);
+
+    CalibrationData magCalibrationData;
 
     void begin();
-    void calibrateGyro(qint16 *buf);
-    QMatrix3x3 getSoftIronMatrix(QVector3D bias);
-    QVector3D getBias();
-    void getHardIron(QMatrix3x3 softIron, QVector3D bias);
-    QVector3D rotate(QVector3D point, QMatrix3x3 rm);
     void setMinMax(QVector3D *point);
+    void calibrateGyro(qint16 *buf);
+    void performCalibration();
 
     QQuaternion Qgyro;
     QQuaternion Qini;
@@ -49,7 +47,6 @@ private:
     bool gyroCalibrated = false;
     bool magnetCalibrated = false;
     bool initialPoseCaptured = false;
-    bool magnetCalibrationFinished = false;
 
     int gyroCalibCounter;
     int magnetCalibCounter;
@@ -57,10 +54,10 @@ private:
     quint64 prevTimestamp;
     QVector3D gyrPrev;   
 
+    QVector3D rotateVector(QVector3D *point, QMatrix3x3 *rm);
+    QVector3D stretchVector(QVector3D *point, QVector3D *k);
     QMatrix3x3 angle2dcm(QVector3D gyro);
     QQuaternion gyro2quat(QVector3D gyro);
-
-
 
 public slots:
     void calculateNewPose(qint16 *buf, quint64 timestamp);
@@ -70,7 +67,9 @@ public slots:
 signals:
     void poseChanged(QQuaternion q);
     void sendSingleMagnetMeasure(QVector3D* v);
+    void sendMagnetCalibratedMeasurements(SensorGeometry::CalibrationData *data);
 
 };
 
+Q_DECLARE_METATYPE(SensorGeometry::CalibrationData);
 #endif // GEOMETRYESTIMATION_H

@@ -141,7 +141,7 @@ void MainWindow::setSensorPose(QQuaternion q, QString identifier)
     }
 }
 
-void MainWindow::setCalibrationData(QVector3D* point, QString identifier)
+void MainWindow::addSingleCalibrationMeasurement(QVector3D* point, QString identifier)
 {
     uint counter = ui->lineEditCalibrationCounter->text().toUInt();
     if (calibScatter->seriesList().count() == 0)
@@ -151,6 +151,42 @@ void MainWindow::setCalibrationData(QVector3D* point, QString identifier)
     }
     calibScatter->seriesList().at(0)->dataProxy()->addItem(QtDataVisualization::QScatterDataItem(*point));
     ui->lineEditCalibrationCounter->setText(QString::number(++counter));
+}
+
+void MainWindow::setCalibrationData(SensorGeometry::CalibrationData *data, QString identifier)
+{
+    using namespace QtDataVisualization;
+    QString selectedIdentifier = QVariant::fromValue(ui->comboSelectPortCalib->itemData(ui->comboSelectPortCalib->currentIndex(), Qt::UserRole)).toString();
+    if (selectedIdentifier != identifier)
+        return;
+
+    while (calibScatter->seriesList().count() < 2)
+    {
+            QScatter3DSeries *series = new QScatter3DSeries();
+            series->setBaseColor(QColor(0,0,1));
+            series->setMeshSmooth(false);
+            series->setMesh(QSurface3DSeries::MeshPoint);
+            calibScatter->addSeries(series);
+    }
+
+   // calibScatter->seriesList().at(0)->dataProxy()->removeItems(0, calibScatter->seriesList().at(0)->dataProxy()->itemCount());
+    for (int i = 0; i < data->rawData.count(); i++)
+    {
+        calibScatter->seriesList().at(1)->dataProxy()->addItem(QtDataVisualization::QScatterDataItem(*(data->rawData.at(i))));
+    }
+
+    ui->lineEditM11->setText(QString::number(data->matrix(0,0)));
+    ui->lineEditM21->setText(QString::number(data->matrix(1,0)));
+    ui->lineEditM31->setText(QString::number(data->matrix(2,0)));
+    ui->lineEditM12->setText(QString::number(data->matrix(0,1)));
+    ui->lineEditM22->setText(QString::number(data->matrix(1,1)));
+    ui->lineEditM32->setText(QString::number(data->matrix(2,1)));
+    ui->lineEditM13->setText(QString::number(data->matrix(0,2)));
+    ui->lineEditM23->setText(QString::number(data->matrix(1,2)));
+    ui->lineEditM33->setText(QString::number(data->matrix(2,2)));
+    ui->lineEditXbias->setText(QString::number(data->bias.x()));
+    ui->lineEditYbias->setText(QString::number(data->bias.y()));
+    ui->lineEditZbias->setText(QString::number(data->bias.z()));
 }
 
 void MainWindow::on_btnStartStopCalibration_clicked()

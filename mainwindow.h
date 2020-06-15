@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "sensor.h"
+#include "sensorgeometry.h"
 
 #include <QMainWindow>
 #include <QDebug>
@@ -58,7 +59,8 @@ public slots:
     void setSensorStatus(Sensor::SensorStatus status, QString identifier);
     void setConfigurationTable(QList<Sensor*> sensors);
     void setSensorPose(QQuaternion q, QString identifier);
-    void setCalibrationData(QVector3D* point, QString identifier);
+    void addSingleCalibrationMeasurement(QVector3D* point, QString identifier);
+    void setCalibrationData(SensorGeometry::CalibrationData *data, QString identifier);
 
 private slots:
 

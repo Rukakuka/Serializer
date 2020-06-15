@@ -49,6 +49,7 @@ public slots:
     void StopCalibration(QString identifier);
     void SaveCalibration(QString path);
     void LoadCalibration(QString path);
+    void SetMagnetCalibratedMeasurements(SensorGeometry::CalibrationData *data);
 
 private:
     QString whatConnectedPort(QList<QSerialPortInfo> portlist, Sensor *sensor);
@@ -63,7 +64,7 @@ private slots:
     void setServiceData(Sensor::ServiceData data);
     void setSensorStatus(Sensor::SensorStatus status);
     void setSensorPose(QQuaternion pose);
-    void setCalibrationData(QVector3D *point);
+    void setSingleCalibrationPoint(QVector3D *point);
 
 signals:
     void stopSerial();
@@ -73,7 +74,8 @@ signals:
     void serviceDataChanged(Sensor::ServiceData data, QString identifier);
     void sensorStatusChanged(Sensor::SensorStatus status, QString identifier);
     void sensorPoseChanged(QQuaternion pose, QString identifier);
-    void sensorCalibrationDataChanged(QVector3D* point, QString identifier);
+    void sensorSingleCalibrationMeasurement(QVector3D* point, QString identifier);
+    void sensorCalibrationDataChanged(SensorGeometry::CalibrationData *data, QString identifier);
     void stopCalibration(QString identifier);
     void beginCalibration(QString identifier);
     void stopMagnetometerCalibration();
