@@ -118,7 +118,7 @@ void SensorGeometry::calculateNewPose(qint16 *buf, quint64 timestamp)
     emit poseChanged(Qgyro);
 }
 
-void SensorGeometry::calibrateMagnetometer(qint16 *buf, quint64 timestamp)
+void SensorGeometry::setSingleCalibrationPoint(qint16 *buf, quint64 timestamp)
 {
     if (buf == nullptr)
         return;

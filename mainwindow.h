@@ -38,6 +38,13 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
+
+    enum CalibrationMode
+    {
+        NewCalibration,
+        LoadFromFile
+    };
+
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
@@ -63,7 +70,6 @@ public slots:
     void setCalibrationData(SensorGeometry::CalibrationData *data, QString identifier);
 
 private slots:
-
     void on_btnStartStopSwitch_clicked();
     void on_btnLoadConfig_clicked();
     void on_btnSaveConfig_clicked();
@@ -82,8 +88,10 @@ signals:
     void saveCalibration(QString path);
     void loadCalibration(QString path);
     void configurationChangedByUser(QList<Sensor*> sensors);
-    void beginCalibration(QString identifier);
+    void beginCalibration(QString identifier, MainWindow::CalibrationMode mode);
     void stopCalibration(QString identifier);
 
 };
+
+Q_DECLARE_METATYPE(MainWindow::CalibrationMode);
 #endif // SERIALIZER_H

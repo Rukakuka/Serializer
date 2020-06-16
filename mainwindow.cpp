@@ -9,6 +9,8 @@ MainWindow::~MainWindow()
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwindow)
 {
+    qRegisterMetaType<MainWindow::CalibrationMode>();
+
     ui->setupUi(this);
 
     this->lineEditList = new QList<QLineEdit*>;
@@ -33,6 +35,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
     initializeDrawingPlot();
     initializeCalibrationPlot();
     ui->lineEditCalibrationCounter->setText("0");
+    ui->comboSelectCalibMode->addItem("New calibration");
+    ui->comboSelectCalibMode->addItem("Load from file");
 }
 
 void MainWindow::initializeDrawingPlot()
@@ -197,7 +201,14 @@ void MainWindow::on_btnStartStopCalibration_clicked()
         ui->btnStartStopCalibration->setText("Stop calibration");
         QString selectedIdentifier = QVariant::fromValue(ui->comboSelectPortCalib->itemData(ui->comboSelectPortCalib->currentIndex(), Qt::UserRole)).toString();
         ui->comboSelectPortCalib->setEnabled(false);
-        emit beginCalibration(selectedIdentifier);
+        if (ui->comboSelectCalibMode->currentText() == "New calibration")
+        {
+            emit beginCalibration(selectedIdentifier, CalibrationMode::NewCalibration);
+        }
+        else if (ui->comboSelectCalibMode->currentText() == "Load from file")
+        {
+            emit beginCalibration(selectedIdentifier, CalibrationMode::LoadFromFile);
+        }
     }
     else
     {

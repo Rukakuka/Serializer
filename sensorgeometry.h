@@ -61,7 +61,7 @@ private:
 
 public slots:
     void calculateNewPose(qint16 *buf, quint64 timestamp);
-    void calibrateMagnetometer(qint16 *buf, quint64 timestamp);
+    void setSingleCalibrationPoint(qint16 *buf, quint64 timestamp);
     void stopMagnetometerCalibration();
 
 signals:

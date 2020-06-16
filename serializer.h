@@ -45,7 +45,7 @@ public slots:
     void SaveConfiguration(QString path);
     void LoadConfiguration(QString path);
     void changeConfigurationByUser(QList<Sensor*> sensors);
-    void BeginCalibration(QString identifier);
+    void BeginCalibration(QString identifier, MainWindow::CalibrationMode mode);
     void StopCalibration(QString identifier);
     void SaveCalibration(QString path);
     void LoadCalibration(QString path);

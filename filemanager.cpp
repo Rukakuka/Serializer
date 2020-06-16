@@ -46,6 +46,38 @@ bool FileManager::Load(QString path, QList<Sensor*>* configuration)
     return false;
 }
 
+bool FileManager::Save(QString path, QList<QVector3D*> *rawCalibrationData, QString identifier)
+{
+    QFile file(path);
+    if (file.open(QIODevice::WriteOnly))
+    {
+        QXmlStreamWriter xmlWriter(&file);
+        xmlWriter.setAutoFormatting(true);
+
+        xmlWriter.writeStartDocument();
+        xmlWriter.writeStartElement("RawMagnetometerData");
+        xmlWriter.writeAttribute("identifier", identifier);
+        for (int i = 0; i < rawCalibrationData->count(); i++)
+        {
+            xmlWriter.writeStartElement("Point");
+            xmlWriter.writeAttribute("n", QString::number(i));
+            xmlWriter.writeAttribute("mx", QString::number(rawCalibrationData->at(i)->x()));
+            xmlWriter.writeAttribute("my", QString::number(rawCalibrationData->at(i)->y()));
+            xmlWriter.writeAttribute("mz", QString::number(rawCalibrationData->at(i)->z()));
+            xmlWriter.writeEndElement();
+        }
+        xmlWriter.writeEndDocument();
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+bool FileManager::Load(QString path, QList<QVector3D *> *rawCalibrationData)
+{
+
+}
+
 void FileManager::config_parse(QXmlStreamReader* reader, QList<Sensor*>* configuration)
 {
     qDebug() << "\nParsing configuration...";

@@ -357,33 +357,23 @@
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>10</y>
+          <y>40</y>
           <width>241</width>
-          <height>61</height>
+          <height>31</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="2">
+          <widget class="QPushButton" name="btnLoadRawData">
+           <property name="text">
+            <string>Load raw data</string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="1">
-          <widget class="QPushButton" name="btnStartStopCalibration">
+          <widget class="QPushButton" name="btnSaveRawData">
            <property name="text">
-            <string>Start calibration</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QComboBox" name="comboSelectPortCalib"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QPushButton" name="btnSaveCalibration">
-           <property name="text">
-            <string>Save</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QPushButton" name="btnLoadCalibration">
-           <property name="text">
-            <string>Load</string>
+            <string>Save raw data</string>
            </property>
           </widget>
          </item>
@@ -410,6 +400,65 @@
           <widget class="QLineEdit" name="lineEditCalibrationCounter"/>
          </item>
         </layout>
+       </widget>
+       <widget class="QComboBox" name="comboSelectCalibMode">
+        <property name="geometry">
+         <rect>
+          <x>131</x>
+          <y>11</y>
+          <width>116</width>
+          <height>20</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QWidget" name="horizontalLayoutWidget_2">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>220</y>
+          <width>241</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QPushButton" name="btnSaveCalibration">
+           <property name="text">
+            <string>Save calibration</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnLoadCalibration">
+           <property name="text">
+            <string>Load calibration</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QComboBox" name="comboSelectPortCalib">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>117</width>
+          <height>22</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnStartStopCalibration">
+        <property name="geometry">
+         <rect>
+          <x>130</x>
+          <y>10</y>
+          <width>100</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Start calibration</string>
+        </property>
        </widget>
       </widget>
      </widget>

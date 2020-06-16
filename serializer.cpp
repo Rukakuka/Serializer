@@ -225,14 +225,18 @@ void Serializer::SetMagnetCalibratedMeasurements(SensorGeometry::CalibrationData
     SensorGeometry* sg = qobject_cast<SensorGeometry*>(sender());
     if (sg == nullptr )
         return;
+    QString path = "E:/QtProjects/Serializer/rawmdata_" + sg->identifier() + ".xml";
+    FileManager::Save(path, &(data->rawData), sg->identifier());
     emit sensorCalibrationDataChanged(data, sg->identifier());
 }
 
-void Serializer::BeginCalibration(QString identifier)
+void Serializer::BeginCalibration(QString identifier, MainWindow::CalibrationMode mode)
 {
-    SensorGeometry *sg;
+    SensorGeometry *sg = nullptr;
     foreach(SensorGeometry* geometry, currentWorkingSensorGeometries)
     {
+        if (geometry == nullptr)
+            continue;
         if (geometry->identifier() == identifier)
         {
             sg = geometry;
@@ -244,9 +248,11 @@ void Serializer::BeginCalibration(QString identifier)
         qDebug() << "No SensorGeometry object found. Calibration start cancelled";
         return;
     }
-    Sensor *sensor;
+    Sensor *sensor = nullptr;
     foreach(Sensor* s, currentWorkingSensors)
     {
+        if (s == nullptr)
+            continue;
         if (s->identifier() == sg->identifier())
         {
             sensor = s;
@@ -258,19 +264,32 @@ void Serializer::BeginCalibration(QString identifier)
         qDebug() << "No Sensor object found. Calibration start cancelled";
         return;
     }
-    qDebug() << "Magnetometer calibration begin for" << sensor->name();
 
-    QObject::connect(sensor, &Sensor::sensorDataChanged, sg, &SensorGeometry::calibrateMagnetometer);
-    QObject::connect(sg, &SensorGeometry::sendSingleMagnetMeasure, this, &Serializer::setSingleCalibrationPoint, Qt::UniqueConnection);
-    QObject::connect(this, &Serializer::stopMagnetometerCalibration, sg, &SensorGeometry::stopMagnetometerCalibration, Qt::UniqueConnection);
-    QObject::connect(sg, &SensorGeometry::sendMagnetCalibratedMeasurements, this, &Serializer::SetMagnetCalibratedMeasurements, Qt::UniqueConnection);
+    switch (mode)
+    {
+
+    case MainWindow::CalibrationMode::NewCalibration:
+        qDebug() << "New magnetometer calibration begin for" << sensor->name();
+        QObject::connect(sensor, &Sensor::sensorDataChanged, sg, &SensorGeometry::setSingleCalibrationPoint);
+        QObject::connect(sg, &SensorGeometry::sendSingleMagnetMeasure, this, &Serializer::setSingleCalibrationPoint, Qt::UniqueConnection);
+        QObject::connect(this, &Serializer::stopMagnetometerCalibration, sg, &SensorGeometry::stopMagnetometerCalibration, Qt::UniqueConnection);
+        QObject::connect(sg, &SensorGeometry::sendMagnetCalibratedMeasurements, this, &Serializer::SetMagnetCalibratedMeasurements, Qt::UniqueConnection);
+        break;
+
+    case MainWindow::CalibrationMode::LoadFromFile:
+        qDebug() << "Magnetometer calibration loading from file" << sensor->name();
+        break;
+
+    }
 }
 
 void Serializer::StopCalibration(QString identifier)
 {
-    SensorGeometry *sg;
+    SensorGeometry *sg = nullptr;
     foreach(SensorGeometry* geometry, currentWorkingSensorGeometries)
     {
+        if (geometry == nullptr)
+            continue;
         if (geometry->identifier() == identifier)
         {
             sg = geometry;
@@ -282,9 +301,11 @@ void Serializer::StopCalibration(QString identifier)
         qDebug() << "No SensorGeometry object found. Calibration stop cancelled";
         return;
     }
-    Sensor *sensor;
+    Sensor *sensor = nullptr;
     foreach(Sensor* s, currentWorkingSensors)
     {
+        if (s == nullptr)
+            continue;
         if (s->identifier() == sg->identifier())
         {
             sensor = s;
@@ -298,7 +319,7 @@ void Serializer::StopCalibration(QString identifier)
     }
     emit stopMagnetometerCalibration();
 
-    QObject::disconnect(sensor, &Sensor::sensorDataChanged, sg, &SensorGeometry::calibrateMagnetometer);
+    QObject::disconnect(sensor, &Sensor::sensorDataChanged, sg, &SensorGeometry::setSingleCalibrationPoint);
 
     qDebug() << "Magnetormter calibration done for" << sensor->name();
 }
