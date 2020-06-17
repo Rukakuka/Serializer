@@ -8,7 +8,7 @@ Serializer::Serializer(MainWindow *mainwindow)
     QObject::connect(this, &Serializer::serviceDataChanged, mainwindow, &MainWindow::setServiceData);
     QObject::connect(this, &Serializer::sensorStatusChanged, mainwindow, &MainWindow::setSensorStatus);
     QObject::connect(this, &Serializer::sensorPoseChanged, mainwindow, &MainWindow::setSensorPose);
-    QObject::connect(this, &Serializer::sensorSingleCalibrationMeasurement, mainwindow, &MainWindow::addSingleCalibrationMeasurement);
+    QObject::connect(this, &Serializer::sensorSingleCalibrationMeasurement, mainwindow, &MainWindow::addPointToScatter);
     QObject::connect(this, &Serializer::sensorCalibrationDataChanged, mainwindow, &MainWindow::setCalibrationData);
 
     QObject::connect(mainwindow, &MainWindow::saveConfig, this, &Serializer::SaveConfiguration);
@@ -21,7 +21,6 @@ Serializer::Serializer(MainWindow *mainwindow)
     QObject::connect(mainwindow, &MainWindow::loadCalibration, this, &Serializer::LoadCalibration);
     QObject::connect(mainwindow, &MainWindow::beginCalibration, this, &Serializer::BeginCalibration);
     QObject::connect(mainwindow, &MainWindow::stopCalibration, this, &Serializer::StopCalibration);
-
 }
 
 void Serializer::Begin()
@@ -272,7 +271,7 @@ void Serializer::BeginCalibration(QString identifier, MainWindow::CalibrationMod
         qDebug() << "New magnetometer calibration begin for" << sensor->name();
         QObject::connect(sensor, &Sensor::sensorDataChanged, sg, &SensorGeometry::setSingleCalibrationPoint);
         QObject::connect(sg, &SensorGeometry::sendSingleMagnetMeasure, this, &Serializer::setSingleCalibrationPoint, Qt::UniqueConnection);
-        QObject::connect(this, &Serializer::stopMagnetometerCalibration, sg, &SensorGeometry::stopMagnetometerCalibration, Qt::UniqueConnection);
+        QObject::connect(this, &Serializer::stopCalibration, sg, &SensorGeometry::stopMagnetometerCalibration, Qt::UniqueConnection);
         QObject::connect(sg, &SensorGeometry::sendMagnetCalibratedMeasurements, this, &Serializer::SetMagnetCalibratedMeasurements, Qt::UniqueConnection);
         break;
 
@@ -317,7 +316,7 @@ void Serializer::StopCalibration(QString identifier)
         qDebug() << "No Sensor object found. Calibration stop cancelled";
         return;
     }
-    emit stopMagnetometerCalibration();
+    emit stopCalibration();
 
     QObject::disconnect(sensor, &Sensor::sensorDataChanged, sg, &SensorGeometry::setSingleCalibrationPoint);
 

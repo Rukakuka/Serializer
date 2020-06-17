@@ -75,13 +75,13 @@ void Sensor::stop()
         QObject::disconnect(timeoutTimer, SIGNAL(timeout()), this, SLOT(readTimeout()));
         m_port->close();
     }
-    if (timeoutTimer != NULL)
+    if (timeoutTimer != nullptr)
     {
         timeoutTimer->stop();
         delete timeoutTimer;
-        timeoutTimer = NULL;
+        timeoutTimer = nullptr;
         delete receiveTimer;
-        receiveTimer = NULL;
+        receiveTimer = nullptr;
     }
 }
 
@@ -159,7 +159,6 @@ void Sensor::readTimeout()
     qDebug() << "Serial read timeout. Port " << this->m_name << "closed.";
     this->stop();
 }
-
 
 void Sensor::setCurrentStatus(Sensor::SensorStatus st)
 {

@@ -18,6 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     filemanager.cpp \
     geometryengine.cpp \
+    logger.cpp \
     main.cpp \
     mainwindow.cpp \
     sensor.cpp \
@@ -27,6 +28,7 @@ SOURCES += \
 HEADERS += \
     filemanager.h \
     geometryengine.h \
+    logger.h \
     mainwindow.h \
     sensor.h \
     sensorgeometry.h \

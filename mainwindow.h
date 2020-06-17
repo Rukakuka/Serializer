@@ -3,6 +3,7 @@
 
 #include "sensor.h"
 #include "sensorgeometry.h"
+#include "logger.h"
 
 #include <QMainWindow>
 #include <QDebug>
@@ -66,7 +67,7 @@ public slots:
     void setSensorStatus(Sensor::SensorStatus status, QString identifier);
     void setConfigurationTable(QList<Sensor*> sensors);
     void setSensorPose(QQuaternion q, QString identifier);
-    void addSingleCalibrationMeasurement(QVector3D* point, QString identifier);
+    void addPointToScatter(QVector3D* point, QString identifier);
     void setCalibrationData(SensorGeometry::CalibrationData *data, QString identifier);
 
 private slots:

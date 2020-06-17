@@ -7,16 +7,16 @@
     <x>0</x>
     <y>0</y>
     <width>900</width>
-    <height>538</height>
+    <height>664</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Serializer</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_4" stretch="4,0,1">
     <item>
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QTabWidget" name="tabs">
       <property name="tabShape">
        <enum>QTabWidget::Rounded</enum>
       </property>
@@ -175,7 +175,7 @@
           <widget class="QLineEdit" name="lineEditSensorStatus"/>
          </item>
          <item row="1" column="1">
-          <widget class="QComboBox" name="comboSelectPort"/>
+          <widget class="QComboBox" name="cSelectPortView"/>
          </item>
          <item row="6" column="1">
           <widget class="QLineEdit" name="lineEditGy"/>
@@ -214,67 +214,55 @@
        <attribute name="title">
         <string>Configuration</string>
        </attribute>
-       <widget class="QPushButton" name="btnLoadConfig">
-        <property name="geometry">
-         <rect>
-          <x>470</x>
-          <y>10</y>
-          <width>101</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Load</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="btnSaveConfig">
-        <property name="geometry">
-         <rect>
-          <x>470</x>
-          <y>40</y>
-          <width>101</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Save</string>
-        </property>
-       </widget>
-       <widget class="QTableWidget" name="tableCurrentConfig">
+       <widget class="QTableWidget" name="tCurrentConfig">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>10</y>
-          <width>461</width>
-          <height>321</height>
+          <width>771</width>
+          <height>421</height>
          </rect>
         </property>
        </widget>
-       <widget class="QPushButton" name="btnAddDevice">
+       <widget class="QWidget" name="verticalLayoutWidget_2">
         <property name="geometry">
          <rect>
-          <x>470</x>
-          <y>100</y>
-          <width>101</width>
-          <height>21</height>
+          <x>780</x>
+          <y>10</y>
+          <width>91</width>
+          <height>108</height>
          </rect>
         </property>
-        <property name="text">
-         <string>Add device</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="btnRemoveDevice">
-        <property name="geometry">
-         <rect>
-          <x>470</x>
-          <y>130</y>
-          <width>101</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Remove device</string>
-        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <item>
+          <widget class="QPushButton" name="btnLoadConfig">
+           <property name="text">
+            <string>Load</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnSaveConfig">
+           <property name="text">
+            <string>Save</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnAddDevice">
+           <property name="text">
+            <string>Add device</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnRemoveDevice">
+           <property name="text">
+            <string>Remove device</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </widget>
       <widget class="QWidget" name="calibration">
@@ -302,40 +290,40 @@
         </property>
         <layout class="QGridLayout" name="gridLayoutCalibrationParameters">
          <item row="0" column="3">
-          <widget class="QLineEdit" name="lineEditM31"/>
+          <widget class="QLineEdit" name="leM31"/>
          </item>
          <item row="3" column="1">
-          <widget class="QLineEdit" name="lineEditXbias"/>
+          <widget class="QLineEdit" name="leXbias"/>
          </item>
          <item row="2" column="2">
-          <widget class="QLineEdit" name="lineEditM23"/>
+          <widget class="QLineEdit" name="leM23"/>
          </item>
          <item row="1" column="3">
-          <widget class="QLineEdit" name="lineEditM32"/>
+          <widget class="QLineEdit" name="leM32"/>
          </item>
          <item row="1" column="1">
-          <widget class="QLineEdit" name="lineEditM12"/>
+          <widget class="QLineEdit" name="leM12"/>
          </item>
          <item row="2" column="1">
-          <widget class="QLineEdit" name="lineEditM13"/>
+          <widget class="QLineEdit" name="leM13"/>
          </item>
          <item row="3" column="2">
-          <widget class="QLineEdit" name="lineEditYbias"/>
+          <widget class="QLineEdit" name="leYbias"/>
          </item>
          <item row="1" column="2">
-          <widget class="QLineEdit" name="lineEditM22"/>
+          <widget class="QLineEdit" name="leM22"/>
          </item>
          <item row="0" column="2">
-          <widget class="QLineEdit" name="lineEditM21"/>
+          <widget class="QLineEdit" name="leM21"/>
          </item>
          <item row="3" column="3">
-          <widget class="QLineEdit" name="lineEditZbias"/>
+          <widget class="QLineEdit" name="leZbias"/>
          </item>
          <item row="0" column="1">
-          <widget class="QLineEdit" name="lineEditM11"/>
+          <widget class="QLineEdit" name="leM11"/>
          </item>
          <item row="2" column="3">
-          <widget class="QLineEdit" name="lineEditM33"/>
+          <widget class="QLineEdit" name="leM33"/>
          </item>
          <item row="3" column="0">
           <widget class="QLabel" name="label">
@@ -397,16 +385,16 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEditCalibrationCounter"/>
+          <widget class="QLineEdit" name="leCalibCtn"/>
          </item>
         </layout>
        </widget>
        <widget class="QComboBox" name="comboSelectCalibMode">
         <property name="geometry">
          <rect>
-          <x>131</x>
+          <x>126</x>
           <y>11</y>
-          <width>116</width>
+          <width>121</width>
           <height>20</height>
          </rect>
         </property>
@@ -437,22 +425,12 @@
          </item>
         </layout>
        </widget>
-       <widget class="QComboBox" name="comboSelectPortCalib">
+       <widget class="QPushButton" name="btnStartStopCalibration">
         <property name="geometry">
          <rect>
           <x>10</x>
           <y>10</y>
-          <width>117</width>
-          <height>22</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="btnStartStopCalibration">
-        <property name="geometry">
-         <rect>
-          <x>130</x>
-          <y>10</y>
-          <width>100</width>
+          <width>111</width>
           <height>22</height>
          </rect>
         </property>
@@ -462,6 +440,12 @@
        </widget>
       </widget>
      </widget>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_3"/>
+    </item>
+    <item>
+     <widget class="QPlainTextEdit" name="log"/>
     </item>
    </layout>
   </widget>

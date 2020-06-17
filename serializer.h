@@ -76,9 +76,8 @@ signals:
     void sensorPoseChanged(QQuaternion pose, QString identifier);
     void sensorSingleCalibrationMeasurement(QVector3D* point, QString identifier);
     void sensorCalibrationDataChanged(SensorGeometry::CalibrationData *data, QString identifier);
-    void stopCalibration(QString identifier);
     void beginCalibration(QString identifier);
-    void stopMagnetometerCalibration();
+    void stopCalibration();
 };
 
 #endif
