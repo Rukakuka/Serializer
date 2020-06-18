@@ -1,4 +1,4 @@
-QT       += core gui serialport xml opengl datavisualization
+QT       += core gui serialport xml opengl datavisualization concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

@@ -225,7 +225,7 @@ void Serializer::SetMagnetCalibratedMeasurements(SensorGeometry::CalibrationData
     if (sg == nullptr )
         return;
     QString path = "E:/QtProjects/Serializer/rawmdata_" + sg->identifier() + ".xml";
-    FileManager::Save(path, &(data->rawData), sg->identifier());
+    FileManager::Save(path, data->rawData, sg->identifier());
     emit sensorCalibrationDataChanged(data, sg->identifier());
 }
 

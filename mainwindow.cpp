@@ -13,17 +13,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Mainwi
 
     ui->setupUi(this);
 
-    this->lineEditList = new QList<QLineEdit*>;
+    this->leRawData = new QList<QLineEdit*>;
 
-    lineEditList->append(ui->lineEditAx);
-    lineEditList->append(ui->lineEditAy),
-    lineEditList->append(ui->lineEditAz),
-    lineEditList->append(ui->lineEditGx),
-    lineEditList->append(ui->lineEditGy),
-    lineEditList->append(ui->lineEditGz),
-    lineEditList->append(ui->lineEditMx),
-    lineEditList->append(ui->lineEditMy),
-    lineEditList->append(ui->lineEditMz);
+    leRawData->append(ui->lineEditAx);
+    leRawData->append(ui->lineEditAy),
+    leRawData->append(ui->lineEditAz),
+    leRawData->append(ui->lineEditGx),
+    leRawData->append(ui->lineEditGy),
+    leRawData->append(ui->lineEditGz),
+    leRawData->append(ui->lineEditMx),
+    leRawData->append(ui->lineEditMy),
+    leRawData->append(ui->lineEditMz);
 
     ui->tCurrentConfig->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
     ui->tCurrentConfig->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
@@ -79,15 +79,22 @@ void MainWindow::initializeDrawingPlot()
     QImage color = QImage(2, 2, QImage::Format_RGB32);
     color.fill(Qt::red);
 
-    this->sensorObject = new QCustom3DItem();
-    sensorObject->setMeshFile("E:/QtProjects/Serializer/solids/brick.obj");
+    this->sensorVisu = new QCustom3DItem();
+    try
+    {
+        sensorVisu->setMeshFile("E:/QtProjects/Serializer/solids/brick.obj");
+    }
+    catch (...)
+    {
+       qDebug() << "Error opening mesh";
+    }
+    sensorVisu->setScalingAbsolute(true);
+    sensorVisu->setScaling(QVector3D(2, 2, 2));
+    sensorVisu->setPositionAbsolute(true);
+    sensorVisu->setPosition(QVector3D(0.0, 0.0, 0.0));
+    sensorVisu->setTextureImage(color);
 
-    sensorObject->setScalingAbsolute(true);
-    sensorObject->setScaling(QVector3D(2, 2, 2));
-    sensorObject->setPositionAbsolute(true);
-    sensorObject->setPosition(QVector3D(0.0, 0.0, 0.0));
-    sensorObject->setTextureImage(color);
-    surface->addCustomItem(sensorObject);
+    surface->addCustomItem(sensorVisu);
     surface->setShadowQuality(QAbstract3DGraph::ShadowQuality::ShadowQualityNone);
 }
 
@@ -95,9 +102,10 @@ void MainWindow::initializeCalibrationPlot()
 {
     using namespace QtDataVisualization;
 
-    calibScatter = new Q3DScatter();
-    QWidget *container = QWidget::createWindowContainer(calibScatter);
-    if (!calibScatter->hasContext()) {
+    scatter = new Q3DScatter();
+    QWidget *container = QWidget::createWindowContainer(scatter);
+
+    if (!scatter->hasContext()) {
         QMessageBox msgBox;
         msgBox.setText("Couldn't initialize the OpenGL context.");
         msgBox.exec();
@@ -114,23 +122,29 @@ void MainWindow::initializeCalibrationPlot()
         vLayout->setAlignment(Qt::AlignTop);
     }
 
-    QScatter3DSeries *series = new QScatter3DSeries();
-    series->setBaseColor(QColor(0,0,0));
-    series->setMeshSmooth(false);
-    series->setMesh(QSurface3DSeries::MeshPoint);
-    calibScatter->addSeries(series);
+    QScatter3DSeries *series1 = new QScatter3DSeries();
+    series1->setBaseColor(Qt::red);
+    series1->setMeshSmooth(false);
+    series1->setMesh(QSurface3DSeries::MeshPoint);
+    scatter->addSeries(series1);
 
-    calibScatter->axisX()->setTitle(QStringLiteral("X"));
-    calibScatter->axisY()->setTitle(QStringLiteral("Y"));
-    calibScatter->axisZ()->setTitle(QStringLiteral("Z"));
+    QScatter3DSeries *series2 = new QScatter3DSeries();
+    series2->setBaseColor(Qt::blue);
+    series2->setMeshSmooth(false);
+    series2->setMesh(QSurface3DSeries::MeshPoint);
+    scatter->addSeries(series2);
 
-    calibScatter->axisX()->setTitleVisible(true);
-    calibScatter->axisY()->setTitleVisible(true);
-    calibScatter->axisZ()->setTitleVisible(true);
-    calibScatter->setShadowQuality(QAbstract3DGraph::ShadowQuality::ShadowQualityNone);
+    scatter->axisX()->setTitle(QStringLiteral("X"));
+    scatter->axisY()->setTitle(QStringLiteral("Y"));
+    scatter->axisZ()->setTitle(QStringLiteral("Z"));
 
-    calibScatter->setReflection(false);
-    calibScatter->setSurfaceType(QSurface::SurfaceType::OpenGLSurface);
+    scatter->axisX()->setTitleVisible(true);
+    scatter->axisY()->setTitleVisible(true);
+    scatter->axisZ()->setTitleVisible(true);
+    scatter->setShadowQuality(QAbstract3DGraph::ShadowQuality::ShadowQualityNone);
+
+    scatter->setReflection(false);
+    scatter->setSurfaceType(QSurface::SurfaceType::OpenGLSurface);
 }
 
 void MainWindow::setSensorPose(QQuaternion q, QString identifier)
@@ -140,22 +154,28 @@ void MainWindow::setSensorPose(QQuaternion q, QString identifier)
     QString selectedIdentifier = QVariant::fromValue(ui->cSelectPortView->itemData(ui->cSelectPortView->currentIndex(), Qt::UserRole)).toString();
     if (identifier == selectedIdentifier)
     {
-        this->sensorObject->setRotation(q);
+        this->sensorVisu->setRotation(q);
         return;
     }
 }
 
 void MainWindow::addPointToScatter(QVector3D* point, QString identifier)
 {
-    uint counter = ui->leCalibCtn->text().toUInt();
-    if (calibScatter->seriesList().count() == 0)
+    if (scatter->seriesList().count() == 0)
     {
-        qDebug() << "No container found for calibration data";
+        qDebug() << "No container found for scatter point";
         return;
     }
     if (point == nullptr)
         return;
-    calibScatter->seriesList().at(0)->dataProxy()->addItem(QtDataVisualization::QScatterDataItem(*point));
+    QString selectedIdentifier = QVariant::fromValue(ui->cSelectPortView->itemData(ui->cSelectPortView->currentIndex(), Qt::UserRole)).toString();
+    if (identifier != selectedIdentifier)
+    {
+        qDebug() << "Wrong sensor id when add point to scatter";
+        return;
+    }
+    scatter->seriesList().at(0)->dataProxy()->addItem(QtDataVisualization::QScatterDataItem(*point));
+    uint counter = ui->leCalibCtn->text().toUInt();
     ui->leCalibCtn->setText(QString::number(++counter));
 }
 
@@ -163,22 +183,27 @@ void MainWindow::setCalibrationData(SensorGeometry::CalibrationData *data, QStri
 {
     using namespace QtDataVisualization;
     QString selectedIdentifier = QVariant::fromValue(ui->cSelectPortView->itemData(ui->cSelectPortView->currentIndex(), Qt::UserRole)).toString();
-    if (selectedIdentifier != identifier)
+    if (scatter->seriesList().count() < 2)
+    {
+        qDebug() << "No container found for scatter calibrated data";
         return;
-
-    while (calibScatter->seriesList().count() < 2)
-    {
-            QScatter3DSeries *series = new QScatter3DSeries();
-            series->setBaseColor(QColor(Qt::GlobalColor::blue));
-            series->setMeshSmooth(false);
-            series->setMesh(QSurface3DSeries::MeshPoint);
-            calibScatter->addSeries(series);
     }
-   // calibScatter->seriesList().at(0)->dataProxy()->removeItems(0, calibScatter->seriesList().at(0)->dataProxy()->itemCount());
-    for (int i = 0; i < data->rawData.count(); i++)
+    if (selectedIdentifier != identifier)
     {
-        calibScatter->seriesList().at(1)->dataProxy()->addItem(QtDataVisualization::QScatterDataItem(*(data->rawData.at(i))));
+        qDebug() << "Wrong sensor id when set calibration data";
+        return;
     }
+    QProgressBar bar;
+    bar.setRange(0, 100);
+    bar.setValue(0);
+    bar.show();
+    for (int i = 0; i < data->calibratedData->count(); i++)
+    {
+        bar.setValue(i/data->calibratedData->count());
+        scatter->seriesList().at(1)->dataProxy()->addItem(QtDataVisualization::QScatterDataItem(*(data->calibratedData->at(i))));
+    }
+    bar.close();
+    // calibScatter->seriesList().at(0)->dataProxy()->removeItems(0, calibScatter->seriesList().at(0)->dataProxy()->itemCount());
 
     ui->leM11->setText(QString::number(data->matrix(0,0)));
     ui->leM21->setText(QString::number(data->matrix(1,0)));
@@ -273,7 +298,7 @@ void MainWindow::setConfigurationTable(QList<Sensor*> sensors)
     ui->tCurrentConfig->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::Interactive);
     ui->tCurrentConfig->resizeColumnsToContents();
     ui->tabs->setCurrentIndex(0);
-    on_comboSelectPort_currentIndexChanged(ui->cSelectPortView->currentIndex());
+    on_cSelectPortView_currentIndexChanged(ui->cSelectPortView->currentIndex());
 }
 
 
@@ -289,7 +314,7 @@ void MainWindow::setSensorStatus(Sensor::SensorStatus status, QString identifier
             if (ui->tCurrentConfig->item(row, identifierColumn)->text() == identifier)
             {
                 ui->tCurrentConfig->item(row, statusColumn)->setText(QVariant::fromValue(status).toString());
-                on_comboSelectPort_currentIndexChanged(ui->cSelectPortView->currentIndex());
+                on_cSelectPortView_currentIndexChanged(ui->cSelectPortView->currentIndex());
             }
         }
     }
@@ -300,9 +325,9 @@ void MainWindow::setSensorData(qint16 *databuf, QString identifier)
     QString selectedIdentifier = QVariant::fromValue(ui->cSelectPortView->itemData(ui->cSelectPortView->currentIndex(), Qt::UserRole)).toString();
     if (identifier == selectedIdentifier)
     {
-        for (int i = 0; i < lineEditList->size(); i++)
+        for (int i = 0; i < leRawData->size(); i++)
         {
-            lineEditList->at(i)->setText(QString::number(databuf[i]));
+            leRawData->at(i)->setText(QString::number(databuf[i]));
         }
     }
 }
@@ -418,7 +443,7 @@ void MainWindow::on_btnRemoveDevice_clicked()
     }
 }
 
-void MainWindow::on_comboSelectPort_currentIndexChanged(int index)
+void MainWindow::on_cSelectPortView_currentIndexChanged(int index)
 {
 
     int identifierColumn = whatColumnNumber("Identifier");

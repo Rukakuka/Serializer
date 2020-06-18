@@ -21,7 +21,8 @@ public:
     QString identifier() { return m_identifier; }
     struct CalibrationData
     {
-        QList<QVector3D*> rawData;
+        QList<QVector3D*>* rawData;
+        QList<QVector3D*>* calibratedData;
         QVector3D max;
         QVector3D min;
         QMatrix3x3 matrix;

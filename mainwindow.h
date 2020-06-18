@@ -29,6 +29,7 @@
 #include <QObject>
 #include <QVector3D>
 #include <Q3DScatter>
+#include <QProgressBar>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Mainwindow; }
@@ -51,15 +52,16 @@ public:
 
 private:
     Ui::Mainwindow *ui;
-    QList<QLineEdit*> *lineEditList;
+    QList<QLineEdit*> *leRawData;
     int whatColumnNumber(QString name);    
     QList<Sensor*> formatConfig(QTableWidget *table);
 
-    QtDataVisualization::QCustom3DItem *sensorObject;
-    QtDataVisualization::Q3DScatter *calibScatter;
+    QtDataVisualization::QCustom3DItem *sensorVisu;
+    QtDataVisualization::Q3DScatter *scatter;
 
     void initializeDrawingPlot();
     void initializeCalibrationPlot();
+    void addPointsToScatter(QList<QVector3D *> *points);
 
 public slots:
     void setSensorData(qint16 *databuf, QString identifier);
@@ -76,10 +78,12 @@ private slots:
     void on_btnSaveConfig_clicked();
     void on_btnAddDevice_clicked();
     void on_btnRemoveDevice_clicked();
-    void on_comboSelectPort_currentIndexChanged(int index);
+    void on_cSelectPortView_currentIndexChanged(int index);
     void on_btnStartStopCalibration_clicked();
     void on_btnSaveCalibration_clicked();
     void on_btnLoadCalibration_clicked();
+
+
 
 signals:
     void stopSerial();
@@ -91,6 +95,8 @@ signals:
     void configurationChangedByUser(QList<Sensor*> sensors);
     void beginCalibration(QString identifier, MainWindow::CalibrationMode mode);
     void stopCalibration(QString identifier);
+
+    void finished();
 
 };
 

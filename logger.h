@@ -11,11 +11,12 @@ class Logger : public QObject
 {
     Q_OBJECT
 public:
-    explicit Logger(QObject *parent = nullptr, MainWindow *window = nullptr);
+    //explicit Logger(QObject *parent = nullptr, MainWindow *window = nullptr);
     void message(QString *text);
+    //void initialize(MainWindow *mw);
 private:
     explicit Logger(QObject *parent = nullptr) {};
-    MainWindow *mainwindow;
+    //MainWindow *mainwindow;
     bool initialized;
 signals:
     void setText();
