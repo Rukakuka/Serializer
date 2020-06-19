@@ -48,7 +48,7 @@ public slots:
     void BeginCalibration(QString identifier, MainWindow::CalibrationMode mode);
     void StopCalibration(QString identifier);
     void SaveCalibration(QString path);
-    void LoadCalibration(QString path);
+
     void SetMagnetCalibratedMeasurements(SensorGeometry::CalibrationData *data);
 
 private:
@@ -58,6 +58,7 @@ private:
     QList<SensorGeometry*> currentWorkingSensorGeometries;
 
     bool validatePortName(QString portname);
+    void LoadCalibration(QString path);
 
 private slots:
     void setSensorData(qint16* data, quint64 timestamp);
@@ -77,6 +78,7 @@ signals:
     void sensorSingleCalibrationMeasurement(QVector3D* point, QString identifier);
     void sensorCalibrationDataChanged(SensorGeometry::CalibrationData *data, QString identifier);
     void beginCalibration(QString identifier);
+    void calibrateFromLoadedRawData(QList<QVector3D*>* loadedData);
     void stopCalibration();
 };
 

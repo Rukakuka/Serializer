@@ -203,6 +203,11 @@ void MainWindow::setCalibrationData(SensorGeometry::CalibrationData *data, QStri
         scatter->seriesList().at(1)->dataProxy()->addItem(QtDataVisualization::QScatterDataItem(*(data->calibratedData->at(i))));
     }
     bar.close();
+
+    scatter->axisX()->setRange(-600.0f, 600.0f);
+    scatter->axisY()->setRange(-600.0f, 600.0f);
+    scatter->axisZ()->setRange(-600.0f, 600.0f);
+
     // calibScatter->seriesList().at(0)->dataProxy()->removeItems(0, calibScatter->seriesList().at(0)->dataProxy()->itemCount());
 
     ui->leM11->setText(QString::number(data->matrix(0,0)));
@@ -252,7 +257,10 @@ void MainWindow::on_btnSaveCalibration_clicked()
 
 void MainWindow::on_btnLoadCalibration_clicked()
 {
-    emit loadCalibration("");
+    QString path = QFileDialog::getOpenFileName(this, "Open Configuration", "", "XML files (*.xml)");
+    if (path.isNull() || path.isEmpty())
+        return;
+    emit loadCalibration(path);
 }
 
 void MainWindow::setConfigurationTable(QList<Sensor*> sensors)

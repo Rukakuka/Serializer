@@ -84,7 +84,6 @@ private slots:
     void on_btnLoadCalibration_clicked();
 
 
-
 signals:
     void stopSerial();
     void beginSerial();

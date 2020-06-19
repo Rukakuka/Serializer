@@ -216,7 +216,7 @@ void Serializer::SaveCalibration(QString path)
 
 void Serializer::LoadCalibration(QString path)
 {
-    qDebug() << "Dummy : load calibration from" << path;
+    qDebug() << "Dummy : load calibration at" << path;
 }
 
 void Serializer::SetMagnetCalibratedMeasurements(SensorGeometry::CalibrationData *data)
@@ -225,7 +225,7 @@ void Serializer::SetMagnetCalibratedMeasurements(SensorGeometry::CalibrationData
     if (sg == nullptr )
         return;
     QString path = "E:/QtProjects/Serializer/rawmdata_" + sg->identifier() + ".xml";
-    FileManager::Save(path, data->rawData, sg->identifier());
+    //FileManager::Save(path, data->rawData, sg->identifier());
     emit sensorCalibrationDataChanged(data, sg->identifier());
 }
 
@@ -264,21 +264,36 @@ void Serializer::BeginCalibration(QString identifier, MainWindow::CalibrationMod
         return;
     }
 
+    QObject::connect(sg, &SensorGeometry::sendMagnetCalibratedMeasurements, this, &Serializer::SetMagnetCalibratedMeasurements, Qt::UniqueConnection);
+
     switch (mode)
     {
 
     case MainWindow::CalibrationMode::NewCalibration:
         qDebug() << "New magnetometer calibration begin for" << sensor->name();
-        QObject::connect(sensor, &Sensor::sensorDataChanged, sg, &SensorGeometry::setSingleCalibrationPoint);
+        QObject::connect(sensor, &Sensor::sensorDataChanged, sg, &SensorGeometry::setSingleCalibrationPoint, Qt::UniqueConnection);
         QObject::connect(sg, &SensorGeometry::sendSingleMagnetMeasure, this, &Serializer::setSingleCalibrationPoint, Qt::UniqueConnection);
         QObject::connect(this, &Serializer::stopCalibration, sg, &SensorGeometry::stopMagnetometerCalibration, Qt::UniqueConnection);
-        QObject::connect(sg, &SensorGeometry::sendMagnetCalibratedMeasurements, this, &Serializer::SetMagnetCalibratedMeasurements, Qt::UniqueConnection);
         break;
 
     case MainWindow::CalibrationMode::LoadFromFile:
-        qDebug() << "Magnetometer calibration loading from file" << sensor->name();
+        qDebug() << "Magnetometer calibration loading for" << sensor->name();
+        QWidget widget;
+        QString path = QFileDialog::getOpenFileName(&widget, "Open Configuration", "", "XML files (*.xml)");
+        if (path.isNull() || path.isEmpty())
+            return;
+        QObject::connect(this, &Serializer::calibrateFromLoadedRawData, sg, &SensorGeometry::setLoadedRawData, Qt::UniqueConnection);
+        QList<QVector3D*>* loadedRawData = new QList<QVector3D*>();
+        if (FileManager::Load(path, loadedRawData))
+        {
+            emit calibrateFromLoadedRawData(loadedRawData);
+            qDebug() << "Magnetometer calibration sucessfully loaded for" << sensor->name();
+        }
+        else
+        {
+            qDebug() << "Magnetometer calibration loading fail for" << sensor->name();
+        }
         break;
-
     }
 }
 

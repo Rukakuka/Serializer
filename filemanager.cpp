@@ -73,10 +73,60 @@ bool FileManager::Save(QString path, QList<QVector3D*> *rawCalibrationData, QStr
     return false;
 }
 
-bool FileManager::Load(QString path, QList<QVector3D *> *rawCalibrationData)
+bool FileManager::Load(QString path, QList<QVector3D*> *rawCalibrationData)
 {
-
+    QFile file(path);
+    qDebug() << path;
+    if (file.open(QIODevice::ReadOnly))
+    {
+        QXmlStreamReader reader(&file);
+        rawData_parse(&reader, rawCalibrationData);
+        file.close();
+        return true;
+    }
+    return false;
 }
+
+void FileManager::rawData_parse(QXmlStreamReader* reader, QList<QVector3D*>* rawData)
+{
+    qDebug() << "\nParsing configuration...";
+    while (!reader->atEnd() && !reader->hasError())
+    {
+        QXmlStreamReader::TokenType token = reader->readNext();
+        if (token == QXmlStreamReader::StartDocument)
+        {
+            continue;
+        }
+        if (token == QXmlStreamReader::StartElement)
+        {
+            if (reader->name() == "RawMagnetometerData")
+                continue;
+            if (reader->name() == "Point")
+                rawData_parseData(reader, rawData);
+        }
+    }
+    qDebug() << "Parsing completed.";
+}
+
+void FileManager::rawData_parseData(QXmlStreamReader* reader, QList<QVector3D*>* rawData)
+{
+    QVector3D *v = new QVector3D();
+    QXmlStreamAttributes attributes = reader->attributes();
+    if (attributes.hasAttribute("mz"))
+    {
+        v->setZ(attributes.value("mz").toInt());
+    }
+    if (attributes.hasAttribute("my"))
+    {
+        v->setY(attributes.value("my").toInt());
+    }
+    if (attributes.hasAttribute("mx"))
+    {
+        v->setX(attributes.value("mx").toInt());
+    }
+    rawData->append(v);
+}
+
 
 void FileManager::config_parse(QXmlStreamReader* reader, QList<Sensor*>* configuration)
 {

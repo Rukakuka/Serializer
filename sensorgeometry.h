@@ -63,6 +63,7 @@ private:
 public slots:
     void calculateNewPose(qint16 *buf, quint64 timestamp);
     void setSingleCalibrationPoint(qint16 *buf, quint64 timestamp);
+    void setLoadedRawData(QList<QVector3D*>* loadedData);
     void stopMagnetometerCalibration();
 
 signals:
