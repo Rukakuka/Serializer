@@ -17,6 +17,7 @@ public:
     static bool Save(QString path, QList<Sensor*> *configuration);
     static bool Load(QString path, QList<Sensor*> *configuration);
     static bool Save(QString path, QList<QVector3D*> *rawCalibrationData, QString identifier);
+    static bool SaveTxt(QString path, QList<QVector3D*> *rawCalibrationData, QString identifier);
     static bool Load(QString path, QList<QVector3D*> *rawCalibrationData);
 private:
     explicit FileManager(QObject *parent = nullptr);

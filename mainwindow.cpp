@@ -204,9 +204,9 @@ void MainWindow::setCalibrationData(SensorGeometry::CalibrationData *data, QStri
     }
     bar.close();
 
-    scatter->axisX()->setRange(-600.0f, 600.0f);
-    scatter->axisY()->setRange(-600.0f, 600.0f);
-    scatter->axisZ()->setRange(-600.0f, 600.0f);
+    scatter->axisX()->setRange(-1000.0f, 1000.0f);
+    scatter->axisY()->setRange(-1000.0f, 1000.0f);
+    scatter->axisZ()->setRange(-1000.0f, 1000.0f);
 
     // calibScatter->seriesList().at(0)->dataProxy()->removeItems(0, calibScatter->seriesList().at(0)->dataProxy()->itemCount());
 

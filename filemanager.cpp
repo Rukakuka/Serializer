@@ -73,6 +73,26 @@ bool FileManager::Save(QString path, QList<QVector3D*> *rawCalibrationData, QStr
     return false;
 }
 
+bool FileManager::SaveTxt(QString path, QList<QVector3D *> *rawCalibrationData, QString identifier)
+{
+    QFile file(path);
+    if (file.open(QIODevice::WriteOnly))
+    {
+        // We're going to streaming text to the file
+        QTextStream stream(&file);
+
+        for (int v = 0; v < rawCalibrationData->count(); v++)
+        {
+        stream << rawCalibrationData->at(v)->x() << "  "
+               << rawCalibrationData->at(v)->y() << "  "
+               << rawCalibrationData->at(v)->z() << "\n";
+        }
+        file.close();
+        return true;
+    }
+    return false;
+}
+
 bool FileManager::Load(QString path, QList<QVector3D*> *rawCalibrationData)
 {
     QFile file(path);

@@ -286,6 +286,11 @@ void Serializer::BeginCalibration(QString identifier, MainWindow::CalibrationMod
         QList<QVector3D*>* loadedRawData = new QList<QVector3D*>();
         if (FileManager::Load(path, loadedRawData))
         {
+            /*
+            QString path = QFileDialog::getOpenFileName(&widget, "Save raw data to .txt", "", "TXT files (*.txt)");
+            if (!path.isNull() && !path.isEmpty())
+                FileManager::SaveTxt(path, loadedRawData, "");
+                */
             emit calibrateFromLoadedRawData(loadedRawData);
             qDebug() << "Magnetometer calibration sucessfully loaded for" << sensor->name();
         }

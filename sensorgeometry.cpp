@@ -201,14 +201,26 @@ void SensorGeometry::performCalibration()
             point->setZ(magCalibrationData.calibratedData->at(i)->z()-bias.z());
         }
 
-        float alpha = qAsin(magCalibrationData.max.x() / qSqrt(qPow(magCalibrationData.max.x(), 2) + qPow(magCalibrationData.max.x(), 2)));
-        float theta = qAsin(magCalibrationData.max.y() / qSqrt(qPow(magCalibrationData.max.y(), 2) + qPow(magCalibrationData.max.y(), 2)));
-        float gamma = qAsin(magCalibrationData.max.z() / qSqrt(qPow(magCalibrationData.max.z(), 2) + qPow(magCalibrationData.max.z(), 2)));
+        float x = magCalibrationData.max.x();
+        float y = magCalibrationData.max.y();
+        float z = magCalibrationData.max.z();
+
+        float alpha = qAsin(y / qSqrt(qPow(x, 2) + qPow(y, 2)));
+        float theta = qAsin(z / qSqrt(qPow(y, 2) + qPow(z, 2)));
+        float gamma = qAsin(x / qSqrt(qPow(z, 2) + qPow(x, 2)));
 
         const float eye[9] = {1, 0, 0,
                               0, 1, 0,
                               0, 0, 1};
-        QMatrix3x3 softIron(eye);// = QQuaternion::fromEulerAngles(gamma, alpha, theta).toRotationMatrix();
+        const float pi = 3.14159265;
+
+        qDebug() << alpha*180/pi;
+        qDebug() << theta*180/pi;
+        qDebug() << gamma*180/pi;
+
+        QMatrix3x3 softIron = QQuaternion::fromEulerAngles(alpha*180/pi, theta*180/pi, gamma*180/pi).toRotationMatrix();
+
+        qDebug() << softIron;
 
         magCalibrationData.max.setX(INT32_MIN);
         magCalibrationData.max.setY(INT32_MIN);
@@ -225,25 +237,29 @@ void SensorGeometry::performCalibration()
         }
 
         const float fnorm = 1000; // norm of magnetic field
-        float kx = fnorm / (magCalibrationData.max.x()-magCalibrationData.min.x());
-        float ky = fnorm / (magCalibrationData.max.y()-magCalibrationData.min.y());
-        float kz = fnorm / (magCalibrationData.max.z()-magCalibrationData.min.z());
+        float kx = fnorm / ((magCalibrationData.max.x()-magCalibrationData.min.x())/2);
+        float ky = 2.34;//fnorm / ((magCalibrationData.max.y()-magCalibrationData.min.y())/2);
+        float kz = fnorm / ((magCalibrationData.max.z()-magCalibrationData.min.z())/2);
 
-        QVector3D k(kx, ky, 0);
+        QVector3D k(kx, ky, kz);
         qDebug() << k;
+        qDebug() << magCalibrationData.max.x()-magCalibrationData.min.x();
+        qDebug() << magCalibrationData.max.y()-magCalibrationData.min.y();
+        qDebug() << magCalibrationData.max.z()-magCalibrationData.min.z();
+
         //fnorm / (magCalibrationData.max.y()-magCalibrationData.min.y()),
           //          fnorm / (magCalibrationData.max.z()-magCalibrationData.min.z()));
 
         magCalibrationData.matrix(0,0) = softIron(0,0)*k.x();
-        magCalibrationData.matrix(1,0) = softIron(1,0)*k.y();
-        magCalibrationData.matrix(2,0) = softIron(2,0)*k.z();
+        magCalibrationData.matrix(1,0) = softIron(1,0)*k.x();
+        magCalibrationData.matrix(2,0) = softIron(2,0)*k.x();
 
-        magCalibrationData.matrix(0,1) = softIron(0,1)*k.x();
+        magCalibrationData.matrix(0,1) = softIron(0,1)*k.y();
         magCalibrationData.matrix(1,1) = softIron(1,1)*k.y();
-        magCalibrationData.matrix(2,1) = softIron(2,1)*k.z();
+        magCalibrationData.matrix(2,1) = softIron(2,1)*k.y();
 
-        magCalibrationData.matrix(0,2) = softIron(0,2)*k.x();
-        magCalibrationData.matrix(1,2) = softIron(1,2)*k.y();
+        magCalibrationData.matrix(0,2) = softIron(0,2)*k.z();
+        magCalibrationData.matrix(1,2) = softIron(1,2)*k.z();
         magCalibrationData.matrix(2,2) = softIron(2,2)*k.z();
 
         /*
