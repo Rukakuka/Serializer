@@ -16,6 +16,6 @@ App visualizes raw sensors data and 6-DOF visualization in real-time with ~950 H
 
 ![Execution example](https://github.com/Rukakuka/Serializer/blob/master/img/imu_example.gif)
 
-Implemented magnetometer calibration algoritm with saving & loading existing configuration in .xml. Adding each single measurement to a scatter graph allows to perform calinration more accurately.
+Implemented magnetometer calibration algoritm with saving & loading existing configuration in .xml. Adding each single measurement to a scatter graph allows to perform calibration more accurately.
 
 ![Calibration menu](https://github.com/Rukakuka/Serializer/blob/master/img/calib_example.PNG)
