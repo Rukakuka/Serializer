@@ -5,6 +5,7 @@ Arduino's algoritm hard-coded with VSCode and free Arduino extension. There are 
 Reciver side is implemented with Qt. The app allows user to control COM devices' congiguration from UI instead of opening XML configuration file with editor
 1. Set settings such as Baudrate, Name, Identifier (e.g. Serial number);
 2. Load and save configuration;
+3. Display current status and port (non-editable fields)
 
 ![Configuration menu](https://github.com/Rukakuka/Serializer/blob/master/img/config_example.PNG)
 
