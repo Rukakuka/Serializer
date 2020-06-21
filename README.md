@@ -5,7 +5,13 @@ Arduino's algoritm hard-coded with VSCode and free Arduino extension. There are 
 "Server" side is performed with Qt. The app allows user to control COM devices' congiguration from UI instead of opening XML configuration file with editor^
 1. Set settings such as Baudrate, Name, Identifier (e.g. Serial number);
 2. Load and save configuration;
+
 ![Configuration menu](https://github.com/Rukakuka/Serializer/blob/master/img/config_example.PNG)
-Raw sensors data and 6-DOF visualization in real-time at high speed (~950 Hz refresh rate). Integrating the gyroscope measurements at such speed allows you to reach very small gyroscope drift. There are individual thread for each sensor separated from UI. All readings stacked into buffer so that it can be parsed lately - and so no data is lost, except if it is damaged (serial intarface errors).
+
+App visualizes raw sensors data and 6-DOF visualization in real-time at ~950 Hz refresh rate. Integrating the gyroscope measurements at such speed allows you to reach very small gyroscope drift. All readings stacked into buffer so that it can be parsed lately - and so no data is lost, except if it is damaged (serial intarface errors).
+
+![Configuration menu](https://github.com/Rukakuka/Serializer/blob/master/img/imu_example.GIF)
+
+There are individual thread for each sensor separated from UI, so that readings, parsing and UI actions can be done asynchonosly.
 
 Implemented magnetometer calibration algoritm with saving & loading existing configuration in .xml.
