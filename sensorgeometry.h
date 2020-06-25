@@ -57,7 +57,7 @@ private:
 
     QVector3D rotateVector(QVector3D *point, QMatrix3x3 *rm);
     QVector3D stretchVector(QVector3D *point, QVector3D *k);
-    QMatrix3x3 angle2dcm(QVector3D gyro);
+    QMatrix3x3 angle2dcm(QVector3D angles);
     QQuaternion gyro2quat(QVector3D gyro);
 
 public slots:

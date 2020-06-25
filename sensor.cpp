@@ -137,7 +137,7 @@ void Sensor::readyRead()
         }
         if (cnt >= 1000)
         {
-            static ServiceData serviceData;
+            ServiceData serviceData;
 
             serviceData.LocalTimeElapsed = receiveTimer->nsecsElapsed();
             serviceData.RemoteTimeElapsed = timestamp - prev_timestamp;

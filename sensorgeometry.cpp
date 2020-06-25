@@ -131,11 +131,26 @@ void SensorGeometry::setSingleCalibrationPoint(qint16 *buf, quint64 timestamp)
         QVector3D *pointRaw = new QVector3D((float)buf[6], (float)buf[7], (float)buf[8]);
         if (!magCalibrationData.rawData->isEmpty())
         {
+
             if (!magCalibrationData.rawData->isEmpty() &&
                 pointRaw->x() == magCalibrationData.rawData->last()->x() &&
                 pointRaw->y() == magCalibrationData.rawData->last()->y() &&
                 pointRaw->z() == magCalibrationData.rawData->last()->z())
+            {
+                delete pointRaw;
                 return;
+            }
+            if (magCalibrationData.rawData->count() > 1)
+            {
+
+                if (qFabs(pointRaw->x() -  magCalibrationData.rawData->last()->x()) +
+                    qFabs(pointRaw->y() -  magCalibrationData.rawData->last()->y()) +
+                    qFabs(pointRaw->z() -  magCalibrationData.rawData->last()->z()) > 100) // delete pikes from measurements
+                {
+                    delete pointRaw;
+                    return;
+                }
+            }
         }
         magCalibrationData.rawData->append(pointRaw);
         setMinMax(pointRaw);
@@ -193,32 +208,50 @@ void SensorGeometry::performCalibration()
         bias.setZ((magCalibrationData.max.z() + magCalibrationData.min.z())/2);
         magCalibrationData.bias = bias;
 
+        qDebug() << magCalibrationData.max.x();
+        qDebug() << magCalibrationData.max.y();
+        qDebug() << magCalibrationData.max.z();
+
+        magCalibrationData.max.setX(INT32_MIN);
+        magCalibrationData.max.setY(INT32_MIN);
+        magCalibrationData.max.setZ(INT32_MIN);
+
+        magCalibrationData.min.setX(INT32_MAX);
+        magCalibrationData.min.setY(INT32_MAX);
+        magCalibrationData.min.setZ(INT32_MAX);
+
         for (int i = 0; i < magCalibrationData.calibratedData->count(); i++)
         {
             QVector3D *point = magCalibrationData.calibratedData->at(i);
             point->setX(magCalibrationData.calibratedData->at(i)->x()-bias.x());
             point->setY(magCalibrationData.calibratedData->at(i)->y()-bias.y());
             point->setZ(magCalibrationData.calibratedData->at(i)->z()-bias.z());
+            setMinMax(point);
         }
+
+        qDebug() << magCalibrationData.max.x();
+        qDebug() << magCalibrationData.max.y();
+        qDebug() << magCalibrationData.max.z();
 
         float x = magCalibrationData.max.x();
         float y = magCalibrationData.max.y();
         float z = magCalibrationData.max.z();
 
-        float alpha = qAsin(y / qSqrt(qPow(x, 2) + qPow(y, 2)));
-        float theta = qAsin(z / qSqrt(qPow(y, 2) + qPow(z, 2)));
-        float gamma = qAsin(x / qSqrt(qPow(z, 2) + qPow(x, 2)));
+        float alpha = qAtan2(y,x);//qAsin(y / qSqrt(qPow(x, 2) + qPow(y, 2)));
+        float theta = qAtan2(z,y);//qAsin(z / qSqrt(qPow(y, 2) + qPow(z, 2)));
+        float gamma = qAtan2(x,z);// / qSqrt(qPow(z, 2) + qPow(x, 2)));
 
         const float eye[9] = {1, 0, 0,
                               0, 1, 0,
                               0, 0, 1};
+
         const float pi = 3.14159265;
 
         qDebug() << alpha*180/pi;
         qDebug() << theta*180/pi;
         qDebug() << gamma*180/pi;
 
-        QMatrix3x3 softIron = QQuaternion::fromEulerAngles(alpha*180/pi, theta*180/pi, gamma*180/pi).toRotationMatrix();
+        QMatrix3x3 softIron = angle2dcm(QVector3D(alpha, theta, gamma)); //QQuaternion::fromEulerAngles(gamma*180/pi, alpha*180/pi, theta*180/pi).toRotationMatrix();
 
         qDebug() << softIron;
 
@@ -238,7 +271,7 @@ void SensorGeometry::performCalibration()
 
         const float fnorm = 1000; // norm of magnetic field
         float kx = fnorm / ((magCalibrationData.max.x()-magCalibrationData.min.x())/2);
-        float ky = 2.34;//fnorm / ((magCalibrationData.max.y()-magCalibrationData.min.y())/2);
+        float ky = fnorm / ((magCalibrationData.max.y()-magCalibrationData.min.y())/2);
         float kz = fnorm / ((magCalibrationData.max.z()-magCalibrationData.min.z())/2);
 
         QVector3D k(kx, ky, kz);
@@ -328,13 +361,13 @@ QVector3D SensorGeometry::stretchVector(QVector3D *point, QVector3D *k)
 
 
 
-QMatrix3x3 SensorGeometry::angle2dcm(QVector3D gyro)
+QMatrix3x3 SensorGeometry::angle2dcm(QVector3D angles)
 {
     const float eye[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
     QMatrix3x3 dcm(eye);
     QVector<float> c(3);
     QVector<float> s(3);
-    QVector<float> V = {gyro.x(), gyro.y(), gyro.z()};
+    QVector<float> V = {angles.x(), angles.y(), angles.z()};
 
     for (int i =0; i<3; i++)
     {

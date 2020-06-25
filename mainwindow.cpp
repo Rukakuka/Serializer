@@ -120,7 +120,9 @@ void MainWindow::initializeCalibrationPlot()
         hLayout->addWidget(container, 1);
         hLayout->addLayout(vLayout);
         vLayout->setAlignment(Qt::AlignTop);
+
     }
+
 
     QScatter3DSeries *series1 = new QScatter3DSeries();
     series1->setBaseColor(Qt::red);
@@ -145,6 +147,13 @@ void MainWindow::initializeCalibrationPlot()
 
     scatter->setReflection(false);
     scatter->setSurfaceType(QSurface::SurfaceType::OpenGLSurface);
+    scatter->axisX()->setRange(-1000.0f, 1000.0f);
+    scatter->axisY()->setRange(-1000.0f, 1000.0f);
+    scatter->axisZ()->setRange(-1000.0f, 1000.0f);
+
+    scatter->setAspectRatio(1);
+    scatter->setHorizontalAspectRatio(1);
+
 }
 
 void MainWindow::setSensorPose(QQuaternion q, QString identifier)
@@ -203,10 +212,6 @@ void MainWindow::setCalibrationData(SensorGeometry::CalibrationData *data, QStri
         scatter->seriesList().at(1)->dataProxy()->addItem(QtDataVisualization::QScatterDataItem(*(data->calibratedData->at(i))));
     }
     bar.close();
-
-    scatter->axisX()->setRange(-1000.0f, 1000.0f);
-    scatter->axisY()->setRange(-1000.0f, 1000.0f);
-    scatter->axisZ()->setRange(-1000.0f, 1000.0f);
 
     // calibScatter->seriesList().at(0)->dataProxy()->removeItems(0, calibScatter->seriesList().at(0)->dataProxy()->itemCount());
 
