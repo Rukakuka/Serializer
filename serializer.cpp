@@ -101,14 +101,7 @@ QString Serializer::whatConnectedPort(QList<QSerialPortInfo> portlist, Sensor* s
 
 bool Serializer::validatePortName(QString portname)
 {
-    if (portname.startsWith("COM", Qt::CaseSensitive) && portname.mid(3).toInt() > 0)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return (portname.startsWith("COM", Qt::CaseSensitive) && portname.mid(3).toInt() > 0));
 }
 
 void Serializer::Stop()
